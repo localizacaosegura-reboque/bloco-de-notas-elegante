@@ -96,6 +96,7 @@
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
       overflow-x: auto;
+      scrollbar-width: thin;
     }
 
     .btn-template {
@@ -120,25 +121,26 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 0.5rem 1rem;
+      gap: 0.5rem 0.75rem;
       padding: 0.4rem 0.75rem;
       background: rgba(0, 0, 0, 0.2);
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
       font-size: 0.65rem;
       color: var(--text-muted);
-      opacity: 0.5;
+      opacity: 0.7;
       transition: opacity 0.3s ease;
       flex-shrink: 0;
     }
 
     .shortcuts-sub-header:hover {
-      opacity: 0.9;
+      opacity: 1;
     }
 
     .shortcuts-sub-header span {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 0.25rem;
+      white-space: nowrap;
     }
 
     kbd {
@@ -172,7 +174,7 @@
       text-transform: none;
     }
 
-    /* Rodapé Responsivo */
+    /* Rodapé Responsivo Ajustado */
     footer {
       padding: 0.75rem 1.25rem;
       border-top: 1px solid var(--border-color);
@@ -181,10 +183,11 @@
     }
 
     .controls-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       width: 100%;
+      justify-content: space-between;
     }
 
     button {
@@ -201,7 +204,8 @@
       align-items: center;
       justify-content: center;
       gap: 0.3rem;
-      width: 100%;
+      flex: 1 1 calc(33.33% - 0.5rem);
+      min-width: 110px;
       white-space: nowrap;
     }
 
@@ -238,16 +242,20 @@
       color: #ffffff;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       body {
-        padding: 0.5rem;
+        padding: 0.25rem;
       }
       .container {
-        height: 95vh;
+        height: 96vh;
         border-radius: 12px;
       }
-      .controls-grid {
-        grid-template-columns: repeat(2, 1fr);
+      footer {
+        padding: 0.5rem;
+      }
+      button {
+        flex: 1 1 calc(50% - 0.5rem);
+        padding: 0.6rem 0.4rem;
       }
     }
   </style>
@@ -320,9 +328,9 @@
 
     // Modelos Pré-Definidos
     const templates = {
-      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nChassi: \nPlaca: \nCPF: \nTel.: \nCaso: Sol. VR por m\nEnd. PAX: \nEnd. CSS: \nAssist VR sol.\nCiente da prévia inicial de h úteis para análise do setor resp.`,
-      condutor: `============== CONDUTOR ==============\nNome: \nCPF: \nTel.: \n>21 anos? Sim\nHab. > 2 anos? Sim\nCC com lim. >= R$ 1k? Sim\nOBS: `,
-      reboque: `============== REBOQUE ===============\nNome: \nChassi: \nPlaca: \nCPF: \nTel.: \nCaso: Sol. REB por motivos \nOrig.: \nVia púb? N. Subsolo? N. Rodas/câmbio/dir. travados? N.\nCiente prazo inic. 75 min.\nCiente agend. para XX às Xh`
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL. \nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
+      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
     function loadTemplate(key) {
@@ -334,59 +342,31 @@
           editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
         }
         editor.focus();
-        // Move o cursor para o final da primeira linha de campo
-        jumpToField(0, forward = true);
+        jumpToNextField();
       }
     }
 
-    // Navegação Inteligente com TAB entre linhas de campo
-    function jumpToField(reverse = false) {
+    // Navegar para o próximo campo com TAB
+    function jumpToNextField() {
       const text = editor.value;
-      const lines = text.split('\n');
       const currentPos = editor.selectionStart;
 
-      // Descobrir em qual linha o cursor está
-      let accumulatedLength = 0;
-      let currentLineIndex = 0;
+      // Procura por ":" ou "?" após a posição atual do cursor
+      const regex = /[:\?]\s*/g;
+      regex.lastIndex = currentPos;
 
-      for (let i = 0; i < lines.length; i++) {
-        const lineLen = lines[i].length + 1; // +1 pelo \n
-        if (currentPos < accumulatedLength + lineLen) {
-          currentLineIndex = i;
-          break;
-        }
-        accumulatedLength += lineLen;
+      let match = regex.exec(text);
+
+      // Se não encontrar para frente, busca desde o início do texto
+      if (!match) {
+        regex.lastIndex = 0;
+        match = regex.exec(text);
       }
 
-      // Procurar a próxima linha (ou anterior)
-      let targetIndex = currentLineIndex;
-      const totalLines = lines.length;
-
-      for (let i = 1; i <= totalLines; i++) {
-        if (reverse) {
-          targetIndex = (currentLineIndex - i + totalLines) % totalLines;
-        } else {
-          targetIndex = (currentLineIndex + i) % totalLines;
-        }
-
-        const lineText = lines[targetIndex];
-        // Se for uma linha com cabeçalho ou separador (ex: ===), ignora e vai pra próxima
-        if (!lineText.includes('===')) {
-          break;
-        }
+      if (match) {
+        const nextPos = match.index + match[0].length;
+        editor.setSelectionRange(nextPos, nextPos);
       }
-
-      // Calcular a posição exata do cursor na linha alvo
-      let newPos = 0;
-      for (let i = 0; i < targetIndex; i++) {
-        newPos += lines[i].length + 1;
-      }
-
-      // Posiciona o cursor no final da linha alvo
-      newPos += lines[targetIndex].length;
-
-      editor.focus();
-      editor.setSelectionRange(newPos, newPos);
     }
 
     // Fixar o texto base atual (Ctrl + S)
@@ -475,10 +455,10 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Navegação por Tab / Shift+Tab
+      // Navegação por TAB nos campos do modelo
       if (e.key === 'Tab') {
         e.preventDefault();
-        jumpToField(e.shiftKey); // Se Pressionou Shift+Tab volta
+        jumpToNextField();
       }
 
       // Atalhos dos Modelos (Alt + 1, Alt + 2, Alt + 3)
@@ -495,7 +475,7 @@
         loadTemplate('reboque');
       }
 
-      // Alt + C ou Ctrl + Shift + X: Resetar TUDO (incluindo Fixado)
+      // Alt + C ou Ctrl + Shift + X: Resetar TUDO
       if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
         e.preventDefault();
         resetAll();

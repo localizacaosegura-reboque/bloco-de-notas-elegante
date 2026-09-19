@@ -152,7 +152,7 @@
 
     .controls-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 0.5rem;
       width: 100%;
     }
@@ -225,6 +225,7 @@
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
       <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Limpar Rascunho</span>
+      <span><kbd>Ctrl</kbd>+<kbd>R</kbd> Restaurar Rascunho</span>
     </div>
 
     <textarea id="editor" placeholder="Escreva seu texto base aqui e pressione Ctrl + S para fixá-lo..."></textarea>
@@ -240,8 +241,11 @@
         <button id="btnRedo" title="Refazer Palavra (Ctrl + Y)">
           <span>↪</span> Refazer
         </button>
+        <button id="btnRestoreRascunho" title="Restaurar Rascunho Limpo (Ctrl + R)">
+          <span>🔄</span> Restaurar (Ctrl+R)
+        </button>
         <button id="btnClear" class="btn-danger" title="Limpar Rascunho (Ctrl + X)">
-          <span>🗑</span> Limpar Rascunho
+          <span>🗑</span> Limpar (Ctrl+X)
         </button>
       </div>
     </footer>
@@ -253,10 +257,12 @@
     const btnFix = document.getElementById('btnFix');
     const btnUndoWord = document.getElementById('btnUndoWord');
     const btnRedo = document.getElementById('btnRedo');
+    const btnRestoreRascunho = document.getElementById('btnRestoreRascunho');
     const btnClear = document.getElementById('btnClear');
 
     let pinnedText = null;
     let wordHistory = [];
+    let lastClearedDraft = null; // Guarda o rascunho removido pelo Ctrl+X
 
     // Fixar o texto base atual (Ctrl + S)
     function fixCurrentText() {
@@ -294,19 +300,35 @@
       }
     }
 
-    // Limpar apenas o Rascunho, mantendo o Texto Fixado protegido (Ctrl + X)
+    // Limpar apenas o Rascunho (Ctrl + X) e guardar o que foi apagado
     function clearRascunho() {
+      const minLength = pinnedText !== null ? pinnedText.length : 0;
+      
+      // Salva apenas o texto adicional que foi digitado além do fixado
+      lastClearedDraft = editor.value.slice(minLength);
+
       if (pinnedText !== null) {
         editor.value = pinnedText;
       } else {
         editor.value = '';
       }
-      wordHistory = []; // Reseta o histórico de refazer
+      wordHistory = []; // Reseta o histórico de palavras
+    }
+
+    // Restaurar tudo o que foi removido pelo Ctrl + X (Ctrl + R)
+    function restoreClearedDraft() {
+      if (lastClearedDraft !== null) {
+        const minLength = pinnedText !== null ? pinnedText.length : 0;
+        // Restaura o rascunho de volta após o texto fixado
+        const base = pinnedText !== null ? pinnedText : '';
+        editor.value = base + lastClearedDraft;
+      }
     }
 
     btnFix.addEventListener('click', fixCurrentText);
     btnUndoWord.addEventListener('click', deleteLastWord);
     btnRedo.addEventListener('click', redoLastWord);
+    btnRestoreRascunho.addEventListener('click', restoreClearedDraft);
     btnClear.addEventListener('click', clearRascunho);
 
     // Atalhos do teclado
@@ -331,12 +353,18 @@
         redoLastWord();
       }
 
-      // Ctrl + X: Limpar apenas o Rascunho (Protege o texto fixado)
+      // Ctrl + X: Limpar apenas o Rascunho (Guarda cópia para Ctrl+R)
       if (e.ctrlKey && key === 'x') {
         if (editor.selectionStart === editor.selectionEnd) {
           e.preventDefault();
           clearRascunho();
         }
+      }
+
+      // Ctrl + R: Refazer/Restaurar o Rascunho Limpo
+      if (e.ctrlKey && key === 'r') {
+        e.preventDefault(); // Impede o recarregamento padrão da página no navegador
+        restoreClearedDraft();
       }
     });
   </script>

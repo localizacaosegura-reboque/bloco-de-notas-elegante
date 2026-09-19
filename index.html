@@ -329,11 +329,14 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Modelos Pré-Definidos
+    // Marcador invisível para controle de foco do Tab
+    const TAB_STOP = '[|]';
+
+    // Modelos com os marcadores nos locais das bolas vermelhas
     const templates = {
-      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL. \nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
-      condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
-      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: ${TAB_STOP}\nCHASSI: ${TAB_STOP}\nPLACA: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\nCASO: SOL. VR POR M${TAB_STOP}\nEND. PAX: ${TAB_STOP}\nEND. CSS: ${TAB_STOP}\nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      condutor: `============== CONDUTOR ==============\nNOME: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: ${TAB_STOP}`,
+      reboque: `============== REBOQUE ===============\nNOME: ${TAB_STOP}\nCHASSI: ${TAB_STOP}\nPLACA: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\nCASO: SOL. REB POR MOTIVOS ${TAB_STOP}\nORIG.: ${TAB_STOP}\nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA ${TAB_STOP}XX ÀS ${TAB_STOP}XH`
     };
 
     function loadTemplate(key) {
@@ -345,38 +348,59 @@
           editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
         }
         editor.focus();
-        // Posiciona no primeiro campo do modelo recém-carregado
         editor.setSelectionRange(0, 0);
         jumpToNextField();
       }
     }
 
-    // Navegar para o espaço À FRENTE do próximo ":" ou "?" com TAB
+    // Navegar exatamente para onde estavam as bolas vermelhas
     function jumpToNextField() {
       const text = editor.value;
       const currentPos = editor.selectionStart;
 
-      // Procura o próximo : ou ? a partir da posição atual do cursor
-      const regex = /[:\?]\s*/g;
-      regex.lastIndex = currentPos;
+      let targetPos = -1;
 
-      let match = regex.exec(text);
-
-      // Se não encontrar para frente, volta ao início do texto
-      if (!match) {
-        regex.lastIndex = 0;
-        match = regex.exec(text);
+      // 1. Procura primeiro o marcador oficial [|]
+      let matchIndex = text.indexOf(TAB_STOP, currentPos);
+      if (matchIndex === -1) {
+        matchIndex = text.indexOf(TAB_STOP, 0); // Volta pro topo se chegar ao fim
       }
 
-      if (match) {
-        // Coloca o cursor logo após os dois-pontos/interrogação e seus espaços
-        const targetPos = match.index + match[0].length;
-        editor.setSelectionRange(targetPos, targetPos);
+      if (matchIndex !== -1) {
+        // Apaga o marcador [|] do texto mantendo a posição limpa
+        editor.value = text.slice(0, matchIndex) + text.slice(matchIndex + TAB_STOP.length);
+        targetPos = matchIndex;
+      } else {
+        // Fallback inteligente caso não haja marcador: busca ao final de cada linha que tem ":"
+        const lines = text.split('\n');
+        let accumulated = 0;
+        let found = false;
+
+        for (let line of lines) {
+          const lineStart = accumulated;
+          const lineEnd = accumulated + line.length;
+          accumulated = lineEnd + 1; // +1 devido ao \n
+
+          if (lineStart > currentPos && line.includes(':')) {
+            targetPos = lineEnd;
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          targetPos = text.length;
+        }
       }
+
+      // Posiciona o cursor no local exato
+      editor.setSelectionRange(targetPos, targetPos);
     }
 
     // Fixar o texto base atual (Ctrl + S)
     function fixCurrentText() {
+      // Remove marcadores não usados ao fixar
+      editor.value = editor.value.replaceAll(TAB_STOP, '');
       pinnedText = editor.value;
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
@@ -459,7 +483,7 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Navegação por TAB no campo à frente
+      // Navegação por TAB na posição exata das bolas vermelhas
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();

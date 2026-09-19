@@ -114,7 +114,7 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s ease;
-      font-weight: 400;
+      font-weight: 500;
     }
 
     .btn-template:hover {
@@ -160,19 +160,22 @@
       flex: 1;
       background: transparent;
       border: none;
-      color: var(--text-main);
+      color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 0.88rem;
+      font-weight: 600;
       line-height: 1.5;
       padding: 1rem;
       resize: none;
       outline: none;
       text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     textarea::placeholder {
       color: #2a324b;
       text-transform: none;
+      font-weight: 400;
     }
 
     /* Rodapé Compacto */
@@ -329,14 +332,11 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Marcador invisível para controle de foco do Tab
-    const TAB_STOP = '[|]';
-
-    // Modelos com os marcadores nos locais das bolas vermelhas
+    // Modelos limpos sem qualquer caractere visível
     const templates = {
-      vr: `========== VEÍCULO RESERVA ===========\nNOME: ${TAB_STOP}\nCHASSI: ${TAB_STOP}\nPLACA: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\nCASO: SOL. VR POR M${TAB_STOP}\nEND. PAX: ${TAB_STOP}\nEND. CSS: ${TAB_STOP}\nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
-      condutor: `============== CONDUTOR ==============\nNOME: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: ${TAB_STOP}`,
-      reboque: `============== REBOQUE ===============\nNOME: ${TAB_STOP}\nCHASSI: ${TAB_STOP}\nPLACA: ${TAB_STOP}\nCPF: ${TAB_STOP}\nTEL.: ${TAB_STOP}\nCASO: SOL. REB POR MOTIVOS ${TAB_STOP}\nORIG.: ${TAB_STOP}\nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA ${TAB_STOP}XX ÀS ${TAB_STOP}XH`
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
+      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
     function loadTemplate(key) {
@@ -353,54 +353,63 @@
       }
     }
 
-    // Navegar exatamente para onde estavam as bolas vermelhas
+    // Calcula de forma limpa exatamente onde o cursor deve parar
     function jumpToNextField() {
       const text = editor.value;
       const currentPos = editor.selectionStart;
 
-      let targetPos = -1;
+      // Padrões de parada baseados nos locais das bolas vermelhas do desenho
+      const targets = [
+        /NOME:\s*/g,
+        /CHASSI:\s*/g,
+        /PLACA:\s*/g,
+        /CPF:\s*/g,
+        /TEL\.:\s*/g,
+        /CASO: SOL\. VR POR M/g,
+        /END\. PAX:\s*/g,
+        /END\. CSS:\s*/g,
+        /OBS:\s*/g,
+        /CASO: SOL\. REB POR MOTIVOS\s*/g,
+        /ORIG\.:\s*/g,
+        /CIENTE AGEND\. PARA /g,
+        /ÀS /g
+      ];
 
-      // 1. Procura primeiro o marcador oficial [|]
-      let matchIndex = text.indexOf(TAB_STOP, currentPos);
-      if (matchIndex === -1) {
-        matchIndex = text.indexOf(TAB_STOP, 0); // Volta pro topo se chegar ao fim
-      }
+      let nextPositions = [];
 
-      if (matchIndex !== -1) {
-        // Apaga o marcador [|] do texto mantendo a posição limpa
-        editor.value = text.slice(0, matchIndex) + text.slice(matchIndex + TAB_STOP.length);
-        targetPos = matchIndex;
-      } else {
-        // Fallback inteligente caso não haja marcador: busca ao final de cada linha que tem ":"
-        const lines = text.split('\n');
-        let accumulated = 0;
-        let found = false;
-
-        for (let line of lines) {
-          const lineStart = accumulated;
-          const lineEnd = accumulated + line.length;
-          accumulated = lineEnd + 1; // +1 devido ao \n
-
-          if (lineStart > currentPos && line.includes(':')) {
-            targetPos = lineEnd;
-            found = true;
-            break;
+      targets.forEach(regex => {
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const endPos = match.index + match[0].length;
+          if (endPos > currentPos) {
+            nextPositions.push(endPos);
           }
         }
+      });
 
-        if (!found) {
-          targetPos = text.length;
+      if (nextPositions.length > 0) {
+        // Pega a primeira posição válida após o cursor atual
+        nextPositions.sort((a, b) => a - b);
+        const targetPos = nextPositions[0];
+        editor.setSelectionRange(targetPos, targetPos);
+      } else {
+        // Se já passou do último campo, volta ao primeiro
+        let firstPositions = [];
+        targets.forEach(regex => {
+          let match;
+          while ((match = regex.exec(text)) !== null) {
+            firstPositions.push(match.index + match[0].length);
+          }
+        });
+        if (firstPositions.length > 0) {
+          firstPositions.sort((a, b) => a - b);
+          editor.setSelectionRange(firstPositions[0], firstPositions[0]);
         }
       }
-
-      // Posiciona o cursor no local exato
-      editor.setSelectionRange(targetPos, targetPos);
     }
 
     // Fixar o texto base atual (Ctrl + S)
     function fixCurrentText() {
-      // Remove marcadores não usados ao fixar
-      editor.value = editor.value.replaceAll(TAB_STOP, '');
       pinnedText = editor.value;
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
@@ -483,7 +492,7 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Navegação por TAB na posição exata das bolas vermelhas
+      // Navegação por TAB nas posições corretas
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();

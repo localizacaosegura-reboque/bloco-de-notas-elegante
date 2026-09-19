@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notepad Elegante — Ponto de Fixação</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-color: #0f1117;
+      --card-bg: #161922;
+      --accent-color: #6366f1;
+      --accent-hover: #4f46e5;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #262b38;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    /* Cabeçalho Principal */
+    header {
+      padding: 1rem 1.75rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .title-area h1 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .title-area span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.saved {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Guia de Atalhos Discreta (Sutil e no Topo) */
+    .shortcuts-sub-header {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      padding: 0.45rem 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      opacity: 0.35;
+      transition: opacity 0.3s ease;
+    }
+
+    .shortcuts-sub-header:hover {
+      opacity: 0.85; /* Revela com mais clareza ao passar o mouse */
+    }
+
+    .shortcuts-sub-header span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      padding: 0.05rem 0.3rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-main);
+    }
+
+    /* Area do Editor */
+    textarea {
+      width: 100%;
+      height: 420px;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 1.75rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea::placeholder {
+      color: #334155;
+    }
+
+    /* Rodapé com Botões de Ação */
+    footer {
+      padding: 0.85rem 1.75rem;
+      border-top: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--text-muted);
+    }
+
+    button.btn-primary {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    button.btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="title-area">
+        <h1><span>✦</span> Rascunho Limpo</h1>
+      </div>
+      <div id="statusBadge" class="status-badge">Nenhum ponto fixado</div>
+    </header>
+
+    <!-- Atalhos sutis / imperceptíveis acima da área de escrita -->
+    <div class="shortcuts-sub-header">
+      <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
+      <span><kbd>Ctrl</kbd>+<kbd>D</kbd> Manter Fixado</span>
+      <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
+      <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
+      <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Limpar Tudo</span>
+    </div>
+
+    <textarea id="editor" placeholder="Escreva seu texto base aqui e pressione Ctrl + S para fixá-lo..."></textarea>
+
+    <footer>
+      <div class="controls">
+        <button id="btnFix" class="btn-primary" title="Fixar Texto (Ctrl + S)">
+          <span>📌</span> Fixar (Ctrl+S)
+        </button>
+        <button id="btnRestore" title="Apagar Rascunho (Ctrl + D)">
+          <span>🎯</span> Manter Apenas Fixado (Ctrl+D)
+        </button>
+        <button id="btnUndoWord" title="Apagar Palavra (Ctrl + Z)">
+          <span>⌫</span> Apagar Palavra (Ctrl+Z)
+        </button>
+        <button id="btnRedo" title="Refazer Palavra (Ctrl + Y)">
+          <span>↪</span> Refazer (Ctrl+Y)
+        </button>
+      </div>
+
+      <button id="btnClear" title="Limpar Tudo (Ctrl + X)">
+        <span>🗑</span> Limpar Tudo (Ctrl+X)
+      </button>
+    </footer>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const statusBadge = document.getElementById('statusBadge');
+    const btnFix = document.getElementById('btnFix');
+    const btnRestore = document.getElementById('btnRestore');
+    const btnUndoWord = document.getElementById('btnUndoWord');
+    const btnRedo = document.getElementById('btnRedo');
+    const btnClear = document.getElementById('btnClear');
+
+    let pinnedText = null;
+    let wordHistory = [];
+
+    // Fixar o texto base (Ctrl + S)
+    function fixCurrentText() {
+      pinnedText = editor.value;
+      statusBadge.textContent = "Ponto Fixado ✓";
+      statusBadge.classList.add('saved');
+      btnFix.style.transform = "scale(0.95)";
+      setTimeout(() => btnFix.style.transform = "scale(1)", 150);
+    }
+
+    // Apagar tudo menos o texto fixado (Ctrl + D)
+    function keepOnlyPinned() {
+      if (pinnedText !== null) {
+        editor.value = pinnedText;
+        wordHistory = [];
+      } else {
+        alert("Nenhum ponto fixado! Pressione Ctrl + S para fixar um texto base.");
+      }
+    }
+
+    // Apagar palavra por palavra (Ctrl + Z)
+    function deleteLastWord() {
+      const currentText = editor.value;
+      if (!currentText.trim()) return;
+
+      const match = currentText.match(/(\s*\S+|\s+)$/);
+      if (match) {
+        const removed = match[0];
+        wordHistory.push(removed);
+        editor.value = currentText.slice(0, -removed.length);
+      }
+    }
+
+    // Refazer a palavra apagada (Ctrl + Y)
+    function redoLastWord() {
+      if (wordHistory.length > 0) {
+        const lastRemoved = wordHistory.pop();
+        editor.value += lastRemoved;
+      }
+    }
+
+    // Limpar absolutamente tudo (Ctrl + X)
+    function clearAll() {
+      editor.value = '';
+      pinnedText = null;
+      wordHistory = [];
+      statusBadge.textContent = "Nenhum ponto fixado";
+      statusBadge.classList.remove('saved');
+    }
+
+    // Eventos dos botões
+    btnFix.addEventListener('click', fixCurrentText);
+    btnRestore.addEventListener('click', keepOnlyPinned);
+    btnUndoWord.addEventListener('click', deleteLastWord);
+    btnRedo.addEventListener('click', redoLastWord);
+    btnClear.addEventListener('click', clearAll);
+
+    // Atalhos do teclado
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+
+      if (e.ctrlKey && key === 's') {
+        e.preventDefault();
+        fixCurrentText();
+      }
+
+      if (e.ctrlKey && key === 'd') {
+        e.preventDefault();
+        keepOnlyPinned();
+      }
+
+      if (e.ctrlKey && !e.shiftKey && key === 'z') {
+        e.preventDefault();
+        deleteLastWord();
+      }
+
+      if (e.ctrlKey && key === 'y') {
+        e.preventDefault();
+        redoLastWord();
+      }
+
+      if (e.ctrlKey && key === 'x') {
+        if (editor.selectionStart === editor.selectionEnd) {
+          e.preventDefault();
+          clearAll();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -192,15 +192,22 @@
       text-transform: none;
     }
 
-    /* Destaques em meio negrito para as etiquetas */
+    /* Destaques protegidos contra edição */
     .lbl {
       font-weight: 600;
       color: var(--label-highlight);
+      user-select: none;
     }
 
     .hdr {
       font-weight: 600;
       color: #6366f1;
+      user-select: none;
+    }
+
+    .fixed-text {
+      user-select: none;
+      color: var(--text-main);
     }
 
     /* Rodapé Compacto */
@@ -376,11 +383,11 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Modelos formatados com tags de destaque
+    // Modelos com rótulos inalteráveis (contenteditable="false")
     const rawTemplates = {
-      vr: `<span class="hdr">========== VEÍCULO RESERVA ===========</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CHASSI:</span> \n<span class="lbl">PLACA:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n<span class="lbl">CASO:</span> SOL. VR POR M\n<span class="lbl">END. PAX:</span> \n<span class="lbl">END. CSS:</span> \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
-      condutor: `<span class="hdr">============== CONDUTOR ==============</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\n<span class="lbl">OBS:</span> `,
-      reboque: `<span class="hdr">============== REBOQUE ===============</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CHASSI:</span> \n<span class="lbl">PLACA:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n<span class="lbl">CASO:</span> SOL. REB POR MOTIVOS \n<span class="lbl">ORIG.:</span> \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
+      vr: `<span class="hdr" contenteditable="false">========== VEÍCULO RESERVA ===========</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CHASSI: </span>\n<span class="lbl" contenteditable="false">PLACA: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="lbl" contenteditable="false">CASO: </span>SOL. VR POR M\n<span class="lbl" contenteditable="false">END. PAX: </span>\n<span class="lbl" contenteditable="false">END. CSS: </span>\n<span class="fixed-text" contenteditable="false">ASSIST VR SOL.</span>\n<span class="fixed-text" contenteditable="false">CIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.</span>`,
+      condutor: `<span class="hdr" contenteditable="false">============== CONDUTOR ==============</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="fixed-text" contenteditable="false">>21 ANOS? SIM</span>\n<span class="fixed-text" contenteditable="false">HAB. > 2 ANOS? SIM</span>\n<span class="fixed-text" contenteditable="false">CC COM LIM. >= R$ 1K? SIM</span>\n<span class="lbl" contenteditable="false">OBS: </span>`,
+      reboque: `<span class="hdr" contenteditable="false">============== REBOQUE ===============</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CHASSI: </span>\n<span class="lbl" contenteditable="false">PLACA: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="lbl" contenteditable="false">CASO: </span>SOL. REB POR MOTIVOS \n<span class="lbl" contenteditable="false">ORIG.: </span>\n<span class="fixed-text" contenteditable="false">VIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.</span>\n<span class="fixed-text" contenteditable="false">CIENTE PRAZO INIC. 75 MIN.</span>\n<span class="fixed-text" contenteditable="false">CIENTE AGEND. PARA </span>XX<span class="fixed-text" contenteditable="false"> ÀS </span>XH`
     };
 
     function getText() {
@@ -395,7 +402,7 @@
         if (currentContent === '') {
           editor.innerHTML = textToInsert;
         } else {
-          editor.innerHTML += '<br><br>' + textToInsert;
+          editor.innerHTML += '\n\n' + textToInsert;
         }
         editor.focus();
         jumpToNextField();
@@ -598,6 +605,12 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      // Prevenir espaço duplo no Enter (usa quebra simples)
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.execCommand('insertLineBreak');
+      }
+
       // Navegação Tab
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -616,41 +629,4 @@
       if (e.altKey && key === '3') { e.preventDefault(); loadTemplate('reboque'); }
 
       // Resetar Tudo
-      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
-        e.preventDefault();
-        resetAll();
-      }
-
-      // Ctrl + S: Fixar
-      if (e.ctrlKey && !e.shiftKey && key === 's') {
-        e.preventDefault();
-        fixCurrentText();
-      }
-
-      // Ctrl + Z: Apagar Palavra
-      if (e.ctrlKey && !e.shiftKey && key === 'z') {
-        e.preventDefault();
-        deleteLastWord();
-      }
-
-      // Ctrl + Y: Refazer Palavra
-      if (e.ctrlKey && key === 'y') {
-        e.preventDefault();
-        redoLastWord();
-      }
-
-      // Ctrl + X: Limpar Rascunho
-      if (e.ctrlKey && !e.shiftKey && key === 'x') {
-        e.preventDefault();
-        clearRascunho();
-      }
-
-      // Ctrl + R: Restaurar Rascunho
-      if (e.ctrlKey && key === 'r') {
-        e.preventDefault();
-        restoreClearedDraft();
-      }
-    });
-  </script>
-</body>
-</html>
+      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey &

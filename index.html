@@ -182,7 +182,7 @@
 
     .controls-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap: 0.5rem;
       width: 100%;
     }
@@ -220,10 +220,22 @@
       border-color: var(--accent-hover);
     }
 
-    button.btn-danger:hover {
+    button.btn-warning:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    button.btn-danger {
       background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.4);
+      border-color: rgba(239, 68, 68, 0.3);
       color: #f87171;
+    }
+
+    button.btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #ffffff;
     }
 
     @media (max-width: 480px) {
@@ -262,7 +274,7 @@
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
       <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Limpar Rascunho</span>
-      <span><kbd>Ctrl</kbd>+<kbd>R</kbd> Restaurar Rascunho</span>
+      <span><kbd>Alt</kbd>+<kbd>C</kbd> Resetar Tudo</span>
     </div>
 
     <textarea id="editor" placeholder="Escreva seu texto base ou selecione um modelo acima..."></textarea>
@@ -281,8 +293,11 @@
         <button id="btnRestoreRascunho" title="Restaurar Rascunho Limpo (Ctrl + R)">
           <span>🔄</span> Restaurar (Ctrl+R)
         </button>
-        <button id="btnClear" class="btn-danger" title="Limpar Rascunho (Ctrl + X)">
+        <button id="btnClear" class="btn-warning" title="Limpar Rascunho (Ctrl + X)">
           <span>🗑</span> Limpar (Ctrl+X)
+        </button>
+        <button id="btnResetAll" class="btn-danger" title="Zerar tudo incluindo Fixados (Alt + C)">
+          <span>🔥</span> Resetar Tudo (Alt+C)
         </button>
       </div>
     </footer>
@@ -296,12 +311,13 @@
     const btnRedo = document.getElementById('btnRedo');
     const btnRestoreRascunho = document.getElementById('btnRestoreRascunho');
     const btnClear = document.getElementById('btnClear');
+    const btnResetAll = document.getElementById('btnResetAll');
 
     let pinnedText = null;
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Modelos Pró-Definidos
+    // Modelos Pré-Definidos
     const templates = {
       vr: `========== VEÍCULO RESERVA ===========\nNOME:\nChassi:\nPlaca:\nCPF:\nTel.:\nCaso: Sol. VR por m\nEnd. PAX:\nEnd. CSS:\nAssist VR sol.\nCiente da prévia inicial de h úteis para análise do setor resp.`,
       condutor: `============== CONDUTOR ==============\nNome:\nCPF:\nTel.:\n>21 anos? Sim\nHab. > 2 anos? Sim\nCC com lim. >= R$ 1k? Sim\nOBS:`,
@@ -355,7 +371,7 @@
       }
     }
 
-    // Limpar Rascunho (Ctrl + X) e guardar o que foi apagado
+    // Limpar apenas o Rascunho mantendo o texto fixado (Ctrl + X)
     function clearRascunho() {
       const minLength = pinnedText !== null ? pinnedText.length : 0;
       lastClearedDraft = editor.value.slice(minLength);
@@ -366,6 +382,17 @@
         editor.value = '';
       }
       wordHistory = [];
+    }
+
+    // Resetar TUDO (Limpa inclusive os textos fixados e histórico)
+    function resetAll() {
+      editor.value = '';
+      pinnedText = null;
+      wordHistory = [];
+      lastClearedDraft = null;
+      statusBadge.textContent = "Nenhum ponto fixado";
+      statusBadge.classList.remove('saved');
+      editor.focus();
     }
 
     // Restaurar tudo o que foi removido pelo Ctrl + X (Ctrl + R)
@@ -389,6 +416,7 @@
     btnRedo.addEventListener('click', redoLastWord);
     btnRestoreRascunho.addEventListener('click', restoreClearedDraft);
     btnClear.addEventListener('click', clearRascunho);
+    btnResetAll.addEventListener('click', resetAll);
 
     // Atalhos do teclado
     window.addEventListener('keydown', (e) => {
@@ -408,8 +436,14 @@
         loadTemplate('reboque');
       }
 
+      // Alt + C ou Ctrl + Shift + X: Resetar TUDO (incluindo Fixado)
+      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
+        e.preventDefault();
+        resetAll();
+      }
+
       // Ctrl + S: Fixar
-      if (e.ctrlKey && key === 's') {
+      if (e.ctrlKey && !e.shiftKey && key === 's') {
         e.preventDefault();
         fixCurrentText();
       }
@@ -427,7 +461,7 @@
       }
 
       // Ctrl + X: Limpar Rascunho
-      if (e.ctrlKey && key === 'x') {
+      if (e.ctrlKey && !e.shiftKey && key === 'x') {
         if (editor.selectionStart === editor.selectionEnd) {
           e.preventDefault();
           clearRascunho();

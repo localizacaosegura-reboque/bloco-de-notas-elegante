@@ -270,6 +270,7 @@
     </div>
 
     <div class="shortcuts-sub-header">
+      <span><kbd>Tab</kbd> Próximo Campo</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
@@ -319,9 +320,9 @@
 
     // Modelos Pré-Definidos
     const templates = {
-      vr: `========== VEÍCULO RESERVA ===========\nNOME:\nChassi:\nPlaca:\nCPF:\nTel.:\nCaso: Sol. VR por m\nEnd. PAX:\nEnd. CSS:\nAssist VR sol.\nCiente da prévia inicial de h úteis para análise do setor resp.`,
-      condutor: `============== CONDUTOR ==============\nNome:\nCPF:\nTel.:\n>21 anos? Sim\nHab. > 2 anos? Sim\nCC com lim. >= R$ 1k? Sim\nOBS:`,
-      reboque: `============== REBOQUE ===============\nNome:\nChassi:\nPlaca:\nCPF:\nTel.:\nCaso: Sol. REB por motivos \nOrig.:\nVia púb? N. Subsolo? N. Rodas/câmbio/dir. travados? N.\nCiente prazo inic. 75 min.\nCiente agend. para XX às Xh`
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nChassi: \nPlaca: \nCPF: \nTel.: \nCaso: Sol. VR por m\nEnd. PAX: \nEnd. CSS: \nAssist VR sol.\nCiente da prévia inicial de h úteis para análise do setor resp.`,
+      condutor: `============== CONDUTOR ==============\nNome: \nCPF: \nTel.: \n>21 anos? Sim\nHab. > 2 anos? Sim\nCC com lim. >= R$ 1k? Sim\nOBS: `,
+      reboque: `============== REBOQUE ===============\nNome: \nChassi: \nPlaca: \nCPF: \nTel.: \nCaso: Sol. REB por motivos \nOrig.: \nVia púb? N. Subsolo? N. Rodas/câmbio/dir. travados? N.\nCiente prazo inic. 75 min.\nCiente agend. para XX às Xh`
     };
 
     function loadTemplate(key) {
@@ -333,7 +334,59 @@
           editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
         }
         editor.focus();
+        // Move o cursor para o final da primeira linha de campo
+        jumpToField(0, forward = true);
       }
+    }
+
+    // Navegação Inteligente com TAB entre linhas de campo
+    function jumpToField(reverse = false) {
+      const text = editor.value;
+      const lines = text.split('\n');
+      const currentPos = editor.selectionStart;
+
+      // Descobrir em qual linha o cursor está
+      let accumulatedLength = 0;
+      let currentLineIndex = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const lineLen = lines[i].length + 1; // +1 pelo \n
+        if (currentPos < accumulatedLength + lineLen) {
+          currentLineIndex = i;
+          break;
+        }
+        accumulatedLength += lineLen;
+      }
+
+      // Procurar a próxima linha (ou anterior)
+      let targetIndex = currentLineIndex;
+      const totalLines = lines.length;
+
+      for (let i = 1; i <= totalLines; i++) {
+        if (reverse) {
+          targetIndex = (currentLineIndex - i + totalLines) % totalLines;
+        } else {
+          targetIndex = (currentLineIndex + i) % totalLines;
+        }
+
+        const lineText = lines[targetIndex];
+        // Se for uma linha com cabeçalho ou separador (ex: ===), ignora e vai pra próxima
+        if (!lineText.includes('===')) {
+          break;
+        }
+      }
+
+      // Calcular a posição exata do cursor na linha alvo
+      let newPos = 0;
+      for (let i = 0; i < targetIndex; i++) {
+        newPos += lines[i].length + 1;
+      }
+
+      // Posiciona o cursor no final da linha alvo
+      newPos += lines[targetIndex].length;
+
+      editor.focus();
+      editor.setSelectionRange(newPos, newPos);
     }
 
     // Fixar o texto base atual (Ctrl + S)
@@ -421,6 +474,12 @@
     // Atalhos do teclado
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
+
+      // Navegação por Tab / Shift+Tab
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        jumpToField(e.shiftKey); // Se Pressionou Shift+Tab volta
+      }
 
       // Atalhos dos Modelos (Alt + 1, Alt + 2, Alt + 3)
       if (e.altKey && key === '1') {

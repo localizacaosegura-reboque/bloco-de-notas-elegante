@@ -281,7 +281,7 @@
     </div>
 
     <div class="shortcuts-sub-header">
-      <span><kbd>Tab</kbd> Próx. Campo</span>
+      <span><kbd>Tab</kbd> Próx. Campo (:)</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
@@ -345,28 +345,33 @@
           editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
         }
         editor.focus();
+        
+        // Coloca o cursor logo no primeiro campo do modelo carregado
+        editor.setSelectionRange(0, 0);
         jumpToNextField();
       }
     }
 
-    // Navegar para o próximo campo com TAB
+    // Navegar para o próximo ":" ou "?" após a posição atual
     function jumpToNextField() {
       const text = editor.value;
       const currentPos = editor.selectionStart;
 
+      // Busca por ":" ou "?" estritamente após a posição atual do cursor
       const regex = /[:\?]\s*/g;
       regex.lastIndex = currentPos;
 
       let match = regex.exec(text);
 
+      // Se não houver nenhum campo à frente, volta para o primeiro do texto inteiro
       if (!match) {
         regex.lastIndex = 0;
         match = regex.exec(text);
       }
 
       if (match) {
-        const nextPos = match.index + match[0].length;
-        editor.setSelectionRange(nextPos, nextPos);
+        const targetPos = match.index + match[0].length;
+        editor.setSelectionRange(targetPos, targetPos);
       }
     }
 
@@ -454,7 +459,7 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Navegação por TAB nos campos do modelo
+      // Navegação por TAB diretamente para o próximo ":"
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();

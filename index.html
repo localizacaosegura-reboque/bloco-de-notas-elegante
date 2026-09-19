@@ -192,7 +192,7 @@
       text-transform: none;
     }
 
-    /* Destaques protegidos contra edição */
+    /* Destaques em meio negrito para as etiquetas (protegidos contra edição) */
     .lbl {
       font-weight: 600;
       color: var(--label-highlight);
@@ -205,9 +205,8 @@
       user-select: none;
     }
 
-    .fixed-text {
+    .fixed-info {
       user-select: none;
-      color: var(--text-main);
     }
 
     /* Rodapé Compacto */
@@ -328,7 +327,7 @@
     </div>
 
     <div class="shortcuts-sub-header">
-      <span><kbd>Tab</kbd> Próx. Campo</span>
+      <span><kbd>Tab</kbd> / <kbd>Enter</kbd> Próx. Campo</span>
       <span><kbd>Alt</kbd>+<kbd>A</kbd> Copiar</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
@@ -383,11 +382,11 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Modelos com rótulos inalteráveis (contenteditable="false")
+    // Modelos formatados com elementos protegidos contra exclusão (contenteditable="false")
     const rawTemplates = {
-      vr: `<span class="hdr" contenteditable="false">========== VEÍCULO RESERVA ===========</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CHASSI: </span>\n<span class="lbl" contenteditable="false">PLACA: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="lbl" contenteditable="false">CASO: </span>SOL. VR POR M\n<span class="lbl" contenteditable="false">END. PAX: </span>\n<span class="lbl" contenteditable="false">END. CSS: </span>\n<span class="fixed-text" contenteditable="false">ASSIST VR SOL.</span>\n<span class="fixed-text" contenteditable="false">CIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.</span>`,
-      condutor: `<span class="hdr" contenteditable="false">============== CONDUTOR ==============</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="fixed-text" contenteditable="false">>21 ANOS? SIM</span>\n<span class="fixed-text" contenteditable="false">HAB. > 2 ANOS? SIM</span>\n<span class="fixed-text" contenteditable="false">CC COM LIM. >= R$ 1K? SIM</span>\n<span class="lbl" contenteditable="false">OBS: </span>`,
-      reboque: `<span class="hdr" contenteditable="false">============== REBOQUE ===============</span>\n<span class="lbl" contenteditable="false">NOME: </span>\n<span class="lbl" contenteditable="false">CHASSI: </span>\n<span class="lbl" contenteditable="false">PLACA: </span>\n<span class="lbl" contenteditable="false">CPF: </span>\n<span class="lbl" contenteditable="false">TEL.: </span>\n<span class="lbl" contenteditable="false">CASO: </span>SOL. REB POR MOTIVOS \n<span class="lbl" contenteditable="false">ORIG.: </span>\n<span class="fixed-text" contenteditable="false">VIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.</span>\n<span class="fixed-text" contenteditable="false">CIENTE PRAZO INIC. 75 MIN.</span>\n<span class="fixed-text" contenteditable="false">CIENTE AGEND. PARA </span>XX<span class="fixed-text" contenteditable="false"> ÀS </span>XH`
+      vr: `<span class="hdr" contenteditable="false">========== VEÍCULO RESERVA ===========</span>\n<span class="lbl" contenteditable="false">NOME:</span> \n<span class="lbl" contenteditable="false">CHASSI:</span> \n<span class="lbl" contenteditable="false">PLACA:</span> \n<span class="lbl" contenteditable="false">CPF:</span> \n<span class="lbl" contenteditable="false">TEL.:</span> \n<span class="lbl" contenteditable="false">CASO:</span> SOL. VR POR M\n<span class="lbl" contenteditable="false">END. PAX:</span> \n<span class="lbl" contenteditable="false">END. CSS:</span> \n<span class="fixed-info" contenteditable="false">ASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.</span>`,
+      condutor: `<span class="hdr" contenteditable="false">============== CONDUTOR ==============</span>\n<span class="lbl" contenteditable="false">NOME:</span> \n<span class="lbl" contenteditable="false">CPF:</span> \n<span class="lbl" contenteditable="false">TEL.:</span> \n<span class="fixed-info" contenteditable="false">>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM</span>\n<span class="lbl" contenteditable="false">OBS:</span> `,
+      reboque: `<span class="hdr" contenteditable="false">============== REBOQUE ===============</span>\n<span class="lbl" contenteditable="false">NOME:</span> \n<span class="lbl" contenteditable="false">CHASSI:</span> \n<span class="lbl" contenteditable="false">PLACA:</span> \n<span class="lbl" contenteditable="false">CPF:</span> \n<span class="lbl" contenteditable="false">TEL.:</span> \n<span class="lbl" contenteditable="false">CASO:</span> SOL. REB POR MOTIVOS \n<span class="lbl" contenteditable="false">ORIG.:</span> \n<span class="fixed-info" contenteditable="false">VIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA </span>XX<span class="fixed-info" contenteditable="false"> ÀS </span>XH`
     };
 
     function getText() {
@@ -402,14 +401,14 @@
         if (currentContent === '') {
           editor.innerHTML = textToInsert;
         } else {
-          editor.innerHTML += '\n\n' + textToInsert;
+          editor.innerHTML += '<br><br>' + textToInsert;
         }
         editor.focus();
         jumpToNextField();
       }
     }
 
-    // Posições inteligentes para navegação via Tab
+    // Posições inteligentes para navegação via Tab/Enter
     function getTabStops() {
       const text = getText();
       const stops = [];
@@ -499,7 +498,7 @@
       }
     }
 
-    // Ir para o próximo campo com Tab
+    // Ir para o próximo campo com Tab ou Enter
     function jumpToNextField() {
       const currentPos = getCaretCharacterOffsetWithin(editor);
       const stops = getTabStops();
@@ -605,13 +604,13 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Prevenir espaço duplo no Enter (usa quebra simples)
+      // Impede o Enter de dar quebra de linha extra e salta para o próximo campo como o Tab
       if (e.key === 'Enter') {
         e.preventDefault();
-        document.execCommand('insertLineBreak');
+        jumpToNextField();
       }
 
-      // Navegação Tab
+      // Navegação por Tab
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();
@@ -629,4 +628,12 @@
       if (e.altKey && key === '3') { e.preventDefault(); loadTemplate('reboque'); }
 
       // Resetar Tudo
-      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey &
+      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
+        e.preventDefault();
+        resetAll();
+      }
+
+      // Ctrl + S: Fixar
+      if (e.ctrlKey && !e.shiftKey && key === 's') {
+        e.preventDefault();
+        fixCurr

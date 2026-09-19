@@ -154,43 +154,25 @@
       color: #cbd5e1;
     }
 
-    /* Editor Rico Editável */
-    .editor-container {
+    /* Área do Editor Flexível */
+    textarea {
       width: 100%;
       flex: 1;
       background: transparent;
       border: none;
-      color: #cbd5e1;
+      color: var(--text-main);
       font-family: var(--font-mono);
       font-size: 0.88rem;
       line-height: 1.5;
       padding: 1rem;
       resize: none;
       outline: none;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
+      text-transform: uppercase;
     }
 
-    .editor-container:empty::before {
-      content: "Escreva seu texto base ou selecione um modelo acima...";
+    textarea::placeholder {
       color: #2a324b;
-      font-weight: normal;
-    }
-
-    /* Estilização para Rótulos (Negrito) */
-    .editor-label {
-      font-weight: 600;
-      color: #ffffff;
-    }
-
-    /* Marcador invisível de parada do Tab */
-    .tab-stop {
-      display: inline-block;
-      width: 0;
-      height: 0;
-      overflow: hidden;
-      vertical-align: baseline;
+      text-transform: none;
     }
 
     /* Rodapé Compacto */
@@ -307,7 +289,7 @@
       <span><kbd>Alt</kbd>+<kbd>C</kbd> Resetar Tudo</span>
     </div>
 
-    <div id="editor" class="editor-container" contenteditable="true" spellcheck="false"></div>
+    <textarea id="editor" placeholder="Escreva seu texto base ou selecione um modelo acima..."></textarea>
 
     <footer>
       <div class="controls-grid">
@@ -343,109 +325,138 @@
     const btnClear = document.getElementById('btnClear');
     const btnResetAll = document.getElementById('btnResetAll');
 
-    let pinnedHTML = null;
+    let pinnedText = null;
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    const TAB_STOP_HTML = '<span class="tab-stop"></span>';
-
-    // Modelos com cabeçalhos e rótulos levemente em negrito e marcadores invisíveis
+    // Textos limpos sem marcações visíveis
     const templates = {
-      vr: `<span class="editor-label">========== VEÍCULO RESERVA ===========</span>\n<span class="editor-label">NOME: </span>${TAB_STOP_HTML}\n<span class="editor-label">CHASSI: </span>${TAB_STOP_HTML}\n<span class="editor-label">PLACA: </span>${TAB_STOP_HTML}\n<span class="editor-label">CPF: </span>${TAB_STOP_HTML}\n<span class="editor-label">TEL.: </span>${TAB_STOP_HTML}\n<span class="editor-label">CASO: SOL. VR POR M</span>${TAB_STOP_HTML}\n<span class="editor-label">END. PAX: </span>${TAB_STOP_HTML}\n<span class="editor-label">END. CSS: </span>${TAB_STOP_HTML}\n<span class="editor-label">ASSIST VR SOL.</span>\n<span class="editor-label">CIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.</span>`,
-      condutor: `<span class="editor-label">============== CONDUTOR ==============</span>\n<span class="editor-label">NOME: </span>${TAB_STOP_HTML}\n<span class="editor-label">CPF: </span>${TAB_STOP_HTML}\n<span class="editor-label">TEL.: </span>${TAB_STOP_HTML}\n<span class="editor-label">>21 ANOS? SIM</span>\n<span class="editor-label">HAB. > 2 ANOS? SIM</span>\n<span class="editor-label">CC COM LIM. >= R$ 1K? SIM</span>\n<span class="editor-label">OBS: </span>${TAB_STOP_HTML}`,
-      reboque: `<span class="editor-label">============== REBOQUE ===============</span>\n<span class="editor-label">NOME: </span>${TAB_STOP_HTML}\n<span class="editor-label">CHASSI: </span>${TAB_STOP_HTML}\n<span class="editor-label">PLACA: </span>${TAB_STOP_HTML}\n<span class="editor-label">CPF: </span>${TAB_STOP_HTML}\n<span class="editor-label">TEL.: </span>${TAB_STOP_HTML}\n<span class="editor-label">CASO: SOL. REB POR MOTIVOS </span>${TAB_STOP_HTML}\n<span class="editor-label">ORIG.: </span>${TAB_STOP_HTML}\n<span class="editor-label">VIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.</span>\n<span class="editor-label">CIENTE PRAZO INIC. 75 MIN.</span>\n<span class="editor-label">CIENTE AGEND. PARA </span>${TAB_STOP_HTML}<span class="editor-label">XX ÀS </span>${TAB_STOP_HTML}<span class="editor-label">XH</span>`
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
+      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
     function loadTemplate(key) {
       if (templates[key]) {
-        const htmlToInsert = templates[key];
-        if (editor.innerText.trim() === '') {
-          editor.innerHTML = htmlToInsert;
+        const textToInsert = templates[key].toUpperCase();
+        if (editor.value.trim() === '') {
+          editor.value = textToInsert;
         } else {
-          editor.innerHTML += '\n\n' + htmlToInsert;
+          editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
         }
         editor.focus();
+        editor.setSelectionRange(0, 0);
         jumpToNextField();
       }
     }
 
-    // Navegar para o próximo marcador invisível com TAB
-    function jumpToNextField() {
-      const stops = Array.from(editor.querySelectorAll('.tab-stop'));
-      if (stops.length === 0) return;
+    // Calcula dinamicamente as posições exatas dos pontos de parada do Tab
+    function getTabStops(text) {
+      const stops = [];
+      const lines = text.split('\n');
+      let accumulated = 0;
 
-      const sel = window.getSelection();
-      let currentPosNode = null;
-      if (sel.rangeCount > 0) {
-        currentPosNode = sel.getRangeAt(0).startContainer;
+      for (let line of lines) {
+        // Ignorar linhas informativas sem campos de preenchimento
+        const isIgnored = line.includes('==========') || 
+                          line.includes('ASSIST VR SOL') || 
+                          line.includes('CIENTE DA PRÉVIA') || 
+                          line.includes('>21 ANOS?') || 
+                          line.includes('HAB. > 2 ANOS?') || 
+                          line.includes('CC COM LIM.') || 
+                          line.includes('VIA PÚB?') || 
+                          line.includes('CIENTE PRAZO INIC.');
+
+        if (!isIgnored) {
+          // Caso especial da linha de agendamento: CIENTE AGEND. PARA [parada]XX ÀS [parada]XH
+          if (line.includes('CIENTE AGEND. PARA')) {
+            const indexXX = line.indexOf('XX');
+            const indexXH = line.indexOf('XH');
+
+            if (indexXX !== -1) stops.push(accumulated + indexXX);
+            if (indexXH !== -1) stops.push(accumulated + indexXH);
+          } 
+          // Campos normais terminados em : ou linhas de texto preenchidas
+          else if (line.includes(':')) {
+            stops.push(accumulated + line.length);
+          }
+        }
+
+        accumulated += line.length + 1; // +1 para considerar o \n
       }
 
-      let nextStop = stops.find(stop => {
-        return (stop.compareDocumentPosition(currentPosNode) & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
-      });
+      return stops;
+    }
 
-      if (!nextStop) {
+    // Navega exatamente para as posições do desenho
+    function jumpToNextField() {
+      const text = editor.value;
+      const currentPos = editor.selectionStart;
+      const stops = getTabStops(text);
+
+      if (stops.length === 0) return;
+
+      // Encontra o próximo ponto de parada à frente do cursor
+      let nextStop = stops.find(pos => pos > currentPos);
+
+      // Se passou de todos os pontos, volta para o primeiro
+      if (nextStop === undefined) {
         nextStop = stops[0];
       }
 
-      const range = document.createRange();
-      range.setStartAfter(nextStop);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
+      editor.setSelectionRange(nextStop, nextStop);
     }
 
-    // Fixar o estado atual (Ctrl + S)
+    // Fixar o texto base atual (Ctrl + S)
     function fixCurrentText() {
-      pinnedHTML = editor.innerHTML;
+      pinnedText = editor.value;
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
       statusBadge.classList.add('saved');
     }
 
-    // Apagar palavra (Ctrl + Z)
+    // Apagar palavra por palavra SEM apagar o texto fixado (Ctrl + Z)
     function deleteLastWord() {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
+      const currentText = editor.value;
+      const minLength = pinnedText !== null ? pinnedText.length : 0;
+      
+      if (currentText.length <= minLength) return;
 
-      const range = sel.getRangeAt(0);
-      if (!range.collapsed) {
-        range.deleteContents();
-        return;
-      }
+      const editableText = currentText.slice(minLength);
+      const match = editableText.match(/(\s*\S+|\s+)$/);
 
-      sel.modify("extend", "backward", "word");
-      const word = sel.toString();
-      if (word) {
-        wordHistory.push(word);
-        sel.getRangeAt(0).deleteContents();
+      if (match) {
+        const removed = match[0];
+        wordHistory.push(removed);
+        editor.value = currentText.slice(0, currentText.length - removed.length);
       }
     }
 
-    // Refazer palavra (Ctrl + Y)
+    // Refazer palavra apagada (Ctrl + Y)
     function redoLastWord() {
       if (wordHistory.length > 0) {
         const lastRemoved = wordHistory.pop();
-        document.execCommand('insertText', false, lastRemoved);
+        editor.value += lastRemoved;
       }
     }
 
-    // Limpar Rascunho mantendo Fixado (Ctrl + X)
+    // Limpar apenas o Rascunho mantendo o texto fixado (Ctrl + X)
     function clearRascunho() {
-      if (pinnedHTML !== null) {
-        lastClearedDraft = editor.innerHTML.replace(pinnedHTML, '');
-        editor.innerHTML = pinnedHTML;
+      const minLength = pinnedText !== null ? pinnedText.length : 0;
+      lastClearedDraft = editor.value.slice(minLength);
+
+      if (pinnedText !== null) {
+        editor.value = pinnedText;
       } else {
-        lastClearedDraft = editor.innerHTML;
-        editor.innerHTML = '';
+        editor.value = '';
       }
       wordHistory = [];
     }
 
-    // Resetar Tudo (Alt + C)
+    // Resetar TUDO (Limpa inclusive os textos fixados e histórico)
     function resetAll() {
-      editor.innerHTML = '';
-      pinnedHTML = null;
+      editor.value = '';
+      pinnedText = null;
       wordHistory = [];
       lastClearedDraft = null;
       statusBadge.textContent = "Nenhum ponto fixado";
@@ -453,19 +464,20 @@
       editor.focus();
     }
 
-    // Restaurar Rascunho Limpo (Ctrl + R)
+    // Restaurar tudo o que foi removido pelo Ctrl + X (Ctrl + R)
     function restoreClearedDraft() {
       if (lastClearedDraft !== null) {
-        editor.innerHTML += lastClearedDraft;
+        const base = pinnedText !== null ? pinnedText : '';
+        editor.value = base + lastClearedDraft;
       }
     }
 
-    // Forçar Caixa Alta mantendo formatação HTML
-    editor.addEventListener('beforeinput', (e) => {
-      if (e.data && e.inputType === 'insertText') {
-        e.preventDefault();
-        document.execCommand('insertText', false, e.data.toUpperCase());
-      }
+    // Forçar Caixa Alta na digitação
+    editor.addEventListener('input', () => {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.toUpperCase();
+      editor.setSelectionRange(start, end);
     });
 
     btnFix.addEventListener('click', fixCurrentText);
@@ -479,11 +491,13 @@
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      // Navegação por TAB na posição exata
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();
       }
 
+      // Atalhos dos Modelos (Alt + 1, Alt + 2, Alt + 3)
       if (e.altKey && key === '1') {
         e.preventDefault();
         loadTemplate('vr');
@@ -497,34 +511,39 @@
         loadTemplate('reboque');
       }
 
+      // Alt + C ou Ctrl + Shift + X: Resetar TUDO
       if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
         e.preventDefault();
         resetAll();
       }
 
+      // Ctrl + S: Fixar
       if (e.ctrlKey && !e.shiftKey && key === 's') {
         e.preventDefault();
         fixCurrentText();
       }
 
+      // Ctrl + Z: Apagar Palavra
       if (e.ctrlKey && !e.shiftKey && key === 'z') {
         e.preventDefault();
         deleteLastWord();
       }
 
+      // Ctrl + Y: Refazer Palavra
       if (e.ctrlKey && key === 'y') {
         e.preventDefault();
         redoLastWord();
       }
 
+      // Ctrl + X: Limpar Rascunho
       if (e.ctrlKey && !e.shiftKey && key === 'x') {
-        const sel = window.getSelection();
-        if (sel.isCollapsed) {
+        if (editor.selectionStart === editor.selectionEnd) {
           e.preventDefault();
           clearRascunho();
         }
       }
 
+      // Ctrl + R: Restaurar Rascunho
       if (e.ctrlKey && key === 'r') {
         e.preventDefault();
         restoreClearedDraft();

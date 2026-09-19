@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notepad Elegante — Minimalista</title>
+  <title>Notepad Elegante — Minimalista com Scripts de Apoio</title>
   <style>
     * {
       box-sizing: border-box;
@@ -37,9 +37,9 @@
 
     .container {
       width: 100%;
-      max-width: 800px;
-      height: 92vh;
-      max-height: 820px;
+      max-width: 950px;
+      height: 94vh;
+      max-height: 880px;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -47,6 +47,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      position: relative;
     }
 
     /* Cabeçalho Compacto */
@@ -94,7 +95,7 @@
       border-color: rgba(16, 185, 129, 0.25);
     }
 
-    /* Barra de Modelos Minimalista */
+    /* Barra de Modelos e Scripts Minimalista */
     .templates-bar {
       display: flex;
       gap: 0.35rem;
@@ -104,6 +105,7 @@
       flex-shrink: 0;
       overflow-x: auto;
       scrollbar-width: none;
+      align-items: center;
     }
 
     .templates-bar::-webkit-scrollbar {
@@ -127,6 +129,25 @@
       background: rgba(99, 102, 241, 0.15);
       border-color: rgba(99, 102, 241, 0.3);
       color: #e2e8f0;
+    }
+
+    .btn-script-trigger {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      padding: 0.25rem 0.6rem;
+      border-radius: 5px;
+      font-size: 0.65rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      margin-left: auto;
+    }
+
+    .btn-script-trigger:hover {
+      background: rgba(245, 158, 11, 0.25);
+      color: #ffffff;
     }
 
     /* Atalhos Minimalistas no Topo */
@@ -160,7 +181,7 @@
       color: #cbd5e1;
     }
 
-    /* Área de Texto Textarea Nativa */
+    /* Área do Editor Flexível */
     .editor-wrapper {
       flex: 1;
       padding: 1rem;
@@ -187,6 +208,125 @@
     #editor::placeholder {
       color: #2a324b;
       text-transform: none;
+    }
+
+    /* Painel Flutuante de Argumentos (Balão) */
+    .script-modal {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 15px;
+      width: 380px;
+      max-height: 80vh;
+      background: #181c27;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .script-modal.active {
+      display: flex;
+    }
+
+    .script-header {
+      padding: 0.6rem 0.8rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .script-header h3 {
+      font-size: 0.75rem;
+      color: #fbbf24;
+      font-weight: 500;
+    }
+
+    .close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0 0.2rem;
+    }
+
+    .close-modal:hover {
+      color: var(--text-main);
+    }
+
+    .search-box {
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      color: var(--text-main);
+      font-size: 0.7rem;
+      outline: none;
+    }
+
+    .script-content {
+      padding: 0.6rem 0.8rem;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .script-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 0.5rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .script-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .script-title {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.25rem;
+    }
+
+    .script-text {
+      font-size: 0.65rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 0.35rem;
+      white-space: pre-line;
+    }
+
+    .btn-insert {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #c7d2fe;
+      font-size: 0.58rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    .btn-insert:hover {
+      background: var(--accent-color);
+      color: #ffffff;
     }
 
     /* Rodapé Compacto */
@@ -286,6 +426,10 @@
         flex: 1 1 calc(33.33% - 0.35rem);
         padding: 0.4rem 0.3rem;
       }
+      .script-modal {
+        width: 90%;
+        right: 5%;
+      }
     }
   </style>
 </head>
@@ -299,25 +443,40 @@
       <div id="statusBadge" class="status-badge">Nenhum ponto fixado</div>
     </header>
 
-    <!-- Modelos Rápidos de Atendimento -->
+    <!-- Modelos Rápidos e Botão de Balão de Scripts -->
     <div class="templates-bar">
       <button class="btn-template" id="btnVr">🚗 Veículo Reserva (Alt+1)</button>
       <button class="btn-template" id="btnCondutor">👤 Condutor (Alt+2)</button>
       <button class="btn-template" id="btnReboque">🛞 Reboque (Alt+3)</button>
+      <button class="btn-script-trigger" id="btnToggleScript">💬 Argumentos / FAQ (Alt+F)</button>
     </div>
 
     <div class="shortcuts-sub-header">
       <span><kbd>Tab</kbd> / <kbd>Enter</kbd> Próx. Campo</span>
       <span><kbd>Alt</kbd>+<kbd>A</kbd> Copiar</span>
+      <span><kbd>Alt</kbd>+<kbd>F</kbd> Argumentos</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
-      <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
-      <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Limpar Rascunho</span>
-      <span><kbd>Alt</kbd>+<kbd>C</kbd> Resetar Tudo</span>
+      <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Limpar</span>
+      <span><kbd>Alt</kbd>+<kbd>C</kbd> Resetar</span>
     </div>
 
     <div class="editor-wrapper">
       <textarea id="editor" placeholder="Escreva seu texto base ou selecione um modelo acima..."></textarea>
+    </div>
+
+    <!-- Balão Flutuante de Argumentos / FAQ -->
+    <div class="script-modal" id="scriptModal">
+      <div class="script-header">
+        <h3>💬 Consultar & Inserir Argumentos</h3>
+        <button class="close-modal" id="btnCloseModal">✕</button>
+      </div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Pesquisar (ex: RAM, Venda Direta, Caução, Guincho)..." onkeyup="filterScripts()">
+      </div>
+      <div class="script-content" id="scriptContent">
+        <!-- Cards gerados dinamicamente via JS -->
+      </div>
     </div>
 
     <footer>
@@ -362,11 +521,16 @@
     const btnCondutor = document.getElementById('btnCondutor');
     const btnReboque = document.getElementById('btnReboque');
 
+    const btnToggleScript = document.getElementById('btnToggleScript');
+    const scriptModal = document.getElementById('scriptModal');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const scriptContent = document.getElementById('scriptContent');
+
     let pinnedText = null;
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Lista de Rótulos e Frases Fixas que NÃO podem ser apagadas com Backspace/Delete
+    // Lista de Rótulos e Frases Fixas
     const protectedPrefixes = [
       "========== VEÍCULO RESERVA ==========",
       "============== CONDUTOR ==============",
@@ -385,6 +549,84 @@
       reboque: `============== REBOQUE ==============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
+    // Base de Conhecimento / Argumentos cadastrados
+    const scriptDatabase = [
+      {
+        title: "Abordagem Inicial / Confiat",
+        text: "Estou vendo aqui em sistema que você precisa de um reboque/ veiculo reserva. Vamos fazer isso agora para vc não ficar esperando. Me confirme qual a placa ou cpf do titular do veiculo?"
+      },
+      {
+        title: "Mesma Categoria / Picape RAM",
+        text: "Não há obrigatoriedade contratual de entregar um veículo idêntico ou do mesmo porte (como outra picape RAM). A montadora garante um meio de locomoção, e não a equivalência de modelo. O regulamento prevê a liberação de veículo de categoria intermediária."
+      },
+      {
+        title: "Uso Comercial / Agro",
+        text: "Mesmo se você usar a picape para o agronegócio ou transporte de carga, a montadora, por contrato padrão, não se responsabiliza pelo desvio de finalidade. Ela cobre apenas o transporte pessoal do proprietário."
+      },
+      {
+        title: "Reboque - Concessionária Mais Próxima",
+        text: "Seguindo a garantia aqui conosco, o reboque gratuito é destinado obrigatoriamente à concessionária autorizada mais próxima do local onde ocorreu o evento."
+      },
+      {
+        title: "Venda Direta / Frotista / CNPJ",
+        text: "Identifiquei que seu veículo foi adquirido na modalidade Venda Direta (frotista/produtor rural). Por conta das condições e descontos exclusivos na aquisição, os contratos dessa modalidade não incluem o benefício de veículo reserva pela montadora."
+      },
+      {
+        title: "O que é Regra Institucional",
+        text: "Uma diretriz institucional é uma política interna oficial da companhia. Como a modalidade de compra bloqueia essa assistência, o sistema trava e não permite a liberação manual no atendimento."
+      },
+      {
+        title: "Atraso Sistêmico na Devolução do VR",
+        text: "O que costuma ocorrer nesses casos é um atraso sistêmico entre oficina, seguradora e locadora. Não faça o pagamento dessas diárias agora no balcão. Vamos abrir um chamado de contestação para alinhar com a locadora e derrubar a cobrança."
+      },
+      {
+        title: "Orientação na Locadora (Cobrança no Caução)",
+        text: "Devolva o veículo, pegue o comprovante de entrega e solicite o fechamento pendente para análise da seguradora. Não autorize o débito dessas diárias no seu cartão/caução agora. Vamos formalizar a contestação com urgência."
+      },
+      {
+        title: "Análise do Caução no Balcão",
+        text: "A vistoria do veículo e a análise do caução são feitas imediatamente na devolução. Caso o carro próprio tenha sido liberado e o reserva mantido após o prazo, a locadora cobra as diárias excedentes."
+      }
+    ];
+
+    // Renderizar Cards de Argumentos no Balão
+    function renderScripts(data) {
+      scriptContent.innerHTML = '';
+      data.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'script-card';
+        card.innerHTML = `
+          <div class="script-title">${item.title}</div>
+          <div class="script-text">${item.text}</div>
+          <button class="btn-insert" onclick="insertScript(${index})">+ Inserir no Bloco</button>
+        `;
+        scriptContent.appendChild(card);
+      });
+    }
+
+    // Filtrar Argumentos na Busca
+    function filterScripts() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = scriptDatabase.filter(item => 
+        item.title.toLowerCase().includes(query) || item.text.toLowerCase().includes(query)
+      );
+      renderScripts(filtered);
+    }
+
+    // Inserir o texto selecionado diretamente no Bloco de Notas
+    function insertScript(index) {
+      const item = scriptDatabase[index];
+      if (item) {
+        const currentPos = editor.selectionStart;
+        const text = editor.value;
+        const insertText = (currentPos > 0 && !text.endsWith('\n') ? '\n' : '') + item.text;
+        
+        editor.value = text.slice(0, currentPos) + insertText + text.slice(currentPos);
+        editor.focus();
+        editor.setSelectionRange(currentPos + insertText.length, currentPos + insertText.length);
+      }
+    }
+
     function loadTemplate(key) {
       if (rawTemplates[key]) {
         const textToInsert = rawTemplates[key];
@@ -400,248 +642,6 @@
       }
     }
 
-    // Posições inteligentes para navegação via Tab/Enter
     function getTabStops() {
       const text = editor.value;
-      const stops = [];
-      const lines = text.split('\n');
-      let accumulated = 0;
-
-      for (let line of lines) {
-        const isIgnored = line.includes('==========') || 
-                          line.includes('ASSIST VR SOL') || 
-                          line.includes('CIENTE DA PRÉVIA') || 
-                          line.includes('>21 ANOS?') || 
-                          line.includes('HAB. > 2 ANOS?') || 
-                          line.includes('CC COM LIM.') || 
-                          line.includes('VIA PÚB?') || 
-                          line.includes('CIENTE PRAZO INIC.');
-
-        if (!isIgnored) {
-          if (line.includes('CIENTE AGEND. PARA')) {
-            const indexXX = line.indexOf('XX');
-            const indexXH = line.indexOf('XH');
-
-            if (indexXX !== -1) stops.push({ start: accumulated + indexXX, length: 2 });
-            if (indexXH !== -1) stops.push({ start: accumulated + indexXH, length: 2 });
-          } 
-          else if (line.includes(':')) {
-            stops.push({ start: accumulated + line.length, length: 0 });
-          }
-        }
-
-        accumulated += line.length + 1;
-      }
-
-      return stops;
-    }
-
-    // Ir para o próximo campo com Tab/Enter
-    function jumpToNextField() {
-      const currentPos = editor.selectionStart;
-      const stops = getTabStops();
-
-      if (stops.length === 0) return;
-
-      let nextStop = stops.find(stop => stop.start > currentPos);
-
-      if (!nextStop) {
-        nextStop = stops[0];
-      }
-
-      editor.setSelectionRange(nextStop.start, nextStop.start + nextStop.length);
-    }
-
-    // Proteção contra exclusão das etiquetas protegidas
-    function isPositionProtected(pos, isBackspace) {
-      const text = editor.value;
-      let lineStart = text.lastIndexOf('\n', pos - 1);
-      if (lineStart === -1) lineStart = 0; else lineStart += 1;
-
-      let lineEnd = text.indexOf('\n', pos);
-      if (lineEnd === -1) lineEnd = text.length;
-
-      const currentLine = text.substring(lineStart, lineEnd);
-      const posInLine = pos - lineStart;
-
-      for (let prefix of protectedPrefixes) {
-        if (currentLine.startsWith(prefix)) {
-          let checkLength = prefix.length;
-          // Se for Backspace, previne apagar o último caractere do rótulo/etiqueta
-          if (isBackspace && posInLine <= checkLength) return true;
-          // Se for Delete, previne se o cursor estiver antes da etiqueta
-          if (!isBackspace && posInLine < checkLength) return true;
-        }
-      }
-      return false;
-    }
-
-    // Copiar nota limpa para a área de transferência (Alt + A)
-    function copyToClipboard() {
-      if (!editor.value.trim()) return;
-
-      navigator.clipboard.writeText(editor.value).then(() => {
-        const oldText = statusBadge.textContent;
-        const oldSaved = statusBadge.classList.contains('saved');
-        
-        statusBadge.textContent = "Copiado! ✓";
-        statusBadge.className = "status-badge copied";
-
-        setTimeout(() => {
-          statusBadge.className = "status-badge" + (oldSaved ? " saved" : "");
-          statusBadge.textContent = oldText;
-        }, 1800);
-      });
-    }
-
-    // Fixar o texto base atual (Ctrl + S)
-    function fixCurrentText() {
-      pinnedText = editor.value;
-      wordHistory = [];
-      statusBadge.textContent = "Ponto Fixado ✓";
-      statusBadge.className = "status-badge saved";
-    }
-
-    // Apagar palavra por palavra (Ctrl + Z)
-    function deleteLastWord() {
-      const text = editor.value;
-      const match = text.match(/(\s*\S+|\s+)$/);
-
-      if (match) {
-        const removed = match[0];
-        wordHistory.push(removed);
-        editor.value = text.slice(0, text.length - removed.length);
-      }
-    }
-
-    // Refazer palavra apagada (Ctrl + Y)
-    function redoLastWord() {
-      if (wordHistory.length > 0) {
-        const lastRemoved = wordHistory.pop();
-        editor.value += lastRemoved;
-      }
-    }
-
-    // Limpar apenas o Rascunho mantendo o texto fixado (Ctrl + X)
-    function clearRascunho() {
-      lastClearedDraft = editor.value;
-
-      if (pinnedText !== null) {
-        editor.value = pinnedText;
-      } else {
-        editor.value = '';
-      }
-      wordHistory = [];
-    }
-
-    // Resetar TUDO
-    function resetAll() {
-      editor.value = '';
-      pinnedText = null;
-      wordHistory = [];
-      lastClearedDraft = null;
-      statusBadge.textContent = "Nenhum ponto fixado";
-      statusBadge.className = "status-badge";
-      editor.focus();
-    }
-
-    // Restaurar Rascunho (Ctrl + R)
-    function restoreClearedDraft() {
-      if (lastClearedDraft !== null) {
-        editor.value = lastClearedDraft;
-      }
-    }
-
-    // Eventos dos Botões Rápidos
-    btnVr.addEventListener('click', () => loadTemplate('vr'));
-    btnCondutor.addEventListener('click', () => loadTemplate('condutor'));
-    btnReboque.addEventListener('click', () => loadTemplate('reboque'));
-
-    // Eventos dos Controles Principais
-    btnCopy.addEventListener('click', copyToClipboard);
-    btnFix.addEventListener('click', fixCurrentText);
-    btnUndoWord.addEventListener('click', deleteLastWord);
-    btnRedo.addEventListener('click', redoLastWord);
-    btnRestoreRascunho.addEventListener('click', restoreClearedDraft);
-    btnClear.addEventListener('click', clearRascunho);
-    btnResetAll.addEventListener('click', resetAll);
-
-    // Gestão de Teclas e Proteções
-    editor.addEventListener('keydown', (e) => {
-      // Impede apagar o rótulo/etiqueta
-      if (e.key === 'Backspace' && isPositionProtected(editor.selectionStart, true)) {
-        e.preventDefault();
-        return;
-      }
-      if (e.key === 'Delete' && isPositionProtected(editor.selectionStart, false)) {
-        e.preventDefault();
-        return;
-      }
-
-      // Enter pula para o próximo campo como Tab (evita linhas em branco extras)
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        jumpToNextField();
-      }
-
-      // Tab navega nos campos
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        jumpToNextField();
-      }
-    });
-
-    // Atalhos Globais
-    window.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
-
-      // Alt + A: Copiar
-      if (e.altKey && key === 'a') {
-        e.preventDefault();
-        copyToClipboard();
-      }
-
-      // Atalhos dos Modelos (Alt+1, Alt+2, Alt+3)
-      if (e.altKey && key === '1') { e.preventDefault(); loadTemplate('vr'); }
-      if (e.altKey && key === '2') { e.preventDefault(); loadTemplate('condutor'); }
-      if (e.altKey && key === '3') { e.preventDefault(); loadTemplate('reboque'); }
-
-      // Resetar Tudo (Alt + C)
-      if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
-        e.preventDefault();
-        resetAll();
-      }
-
-      // Ctrl + S: Fixar
-      if (e.ctrlKey && !e.shiftKey && key === 's') {
-        e.preventDefault();
-        fixCurrentText();
-      }
-
-      // Ctrl + Z: Apagar Palavra
-      if (e.ctrlKey && !e.shiftKey && key === 'z') {
-        e.preventDefault();
-        deleteLastWord();
-      }
-
-      // Ctrl + Y: Refazer Palavra
-      if (e.ctrlKey && key === 'y') {
-        e.preventDefault();
-        redoLastWord();
-      }
-
-      // Ctrl + X: Limpar Rascunho
-      if (e.ctrlKey && !e.shiftKey && key === 'x') {
-        e.preventDefault();
-        clearRascunho();
-      }
-
-      // Ctrl + R: Restaurar Rascunho
-      if (e.ctrlKey && key === 'r') {
-        e.preventDefault();
-        restoreClearedDraft();
-      }
-    });
-  </script>
-</body>
-</html>
+      const stops

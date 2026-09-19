@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notepad Elegante — Ponto de Fixação</title>
+  <title>Notepad Elegante — Minimalista</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,13 +12,13 @@
     }
 
     :root {
-      --bg-color: #0f1117;
-      --card-bg: #161922;
+      --bg-color: #0b0d12;
+      --card-bg: #12151e;
       --accent-color: #6366f1;
       --accent-hover: #4f46e5;
       --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-color: #262b38;
+      --text-muted: #64748b;
+      --border-color: #1e2330;
       --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
@@ -32,125 +32,126 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      padding: 0.5rem;
     }
 
     .container {
       width: 100%;
-      max-width: 850px;
-      height: 90vh;
-      max-height: 850px;
+      max-width: 800px;
+      height: 92vh;
+      max-height: 820px;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    /* Cabeçalho */
+    /* Cabeçalho Compacto */
     header {
-      padding: 0.85rem 1.25rem;
+      padding: 0.6rem 1rem;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.01);
       flex-shrink: 0;
     }
 
     .title-area h1 {
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 500;
       color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.3rem;
+      letter-spacing: 0.5px;
     }
 
     .status-badge {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-family: var(--font-mono);
-      padding: 0.3rem 0.6rem;
-      border-radius: 20px;
-      background: rgba(148, 163, 184, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      background: rgba(100, 116, 139, 0.1);
       color: var(--text-muted);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      border: 1px solid rgba(100, 116, 139, 0.2);
       transition: all 0.3s ease;
       white-space: nowrap;
     }
 
     .status-badge.saved {
-      background: rgba(99, 102, 241, 0.15);
+      background: rgba(99, 102, 241, 0.1);
       color: #818cf8;
-      border-color: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.25);
     }
 
-    /* Barra de Modelos Rápidos */
+    /* Barra de Modelos Minimalista */
     .templates-bar {
       display: flex;
-      gap: 0.5rem;
-      padding: 0.6rem 1.25rem;
-      background: rgba(255, 255, 255, 0.03);
+      gap: 0.35rem;
+      padding: 0.4rem 1rem;
+      background: rgba(0, 0, 0, 0.15);
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
       overflow-x: auto;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+    }
+
+    .templates-bar::-webkit-scrollbar {
+      display: none;
     }
 
     .btn-template {
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #a5b4fc;
-      padding: 0.35rem 0.65rem;
-      border-radius: 6px;
-      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: #94a3b8;
+      padding: 0.25rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.65rem;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s ease;
+      font-weight: 400;
     }
 
     .btn-template:hover {
-      background: rgba(99, 102, 241, 0.25);
-      color: #ffffff;
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #e2e8f0;
     }
 
-    /* Atalhos Sutis no Topo */
+    /* Atalhos Minimalistas no Topo */
     .shortcuts-sub-header {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 0.5rem 0.75rem;
-      padding: 0.4rem 0.75rem;
-      background: rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      font-size: 0.65rem;
+      gap: 0.35rem 0.6rem;
+      padding: 0.3rem 0.75rem;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      font-size: 0.6rem;
       color: var(--text-muted);
-      opacity: 0.7;
-      transition: opacity 0.3s ease;
       flex-shrink: 0;
-    }
-
-    .shortcuts-sub-header:hover {
-      opacity: 1;
     }
 
     .shortcuts-sub-header span {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.2rem;
       white-space: nowrap;
     }
 
     kbd {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 3px;
-      padding: 0.05rem 0.3rem;
+      padding: 0.02rem 0.25rem;
       font-family: var(--font-mono);
-      font-size: 0.6rem;
-      color: var(--text-main);
+      font-size: 0.55rem;
+      color: #cbd5e1;
     }
 
     /* Área do Editor Flexível */
@@ -161,101 +162,103 @@
       border: none;
       color: var(--text-main);
       font-family: var(--font-mono);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      padding: 1.25rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      padding: 1rem;
       resize: none;
       outline: none;
       text-transform: uppercase;
     }
 
     textarea::placeholder {
-      color: #334155;
+      color: #2a324b;
       text-transform: none;
     }
 
-    /* Rodapé Responsivo Ajustado */
+    /* Rodapé Compacto */
     footer {
-      padding: 0.75rem 1.25rem;
+      padding: 0.5rem 1rem;
       border-top: 1px solid var(--border-color);
-      background: rgba(0, 0, 0, 0.15);
+      background: rgba(0, 0, 0, 0.2);
       flex-shrink: 0;
     }
 
     .controls-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.35rem;
       width: 100%;
       justify-content: space-between;
     }
 
     button {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 0.5rem 0.6rem;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 500;
+      background: rgba(255, 255, 255, 0.03);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 400;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.3rem;
-      flex: 1 1 calc(33.33% - 0.5rem);
-      min-width: 110px;
+      gap: 0.25rem;
+      flex: 1 1 calc(16.66% - 0.35rem);
+      min-width: 90px;
       white-space: nowrap;
     }
 
     button:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
     }
 
     button.btn-primary {
-      background: var(--accent-color);
-      border-color: var(--accent-color);
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
     }
 
     button.btn-primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
+      background: var(--accent-color);
+      color: #ffffff;
     }
 
     button.btn-warning:hover {
       background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.4);
+      border-color: rgba(245, 158, 11, 0.3);
       color: #fbbf24;
     }
 
     button.btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.3);
-      color: #f87171;
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
     }
 
     button.btn-danger:hover {
-      background: rgba(239, 68, 68, 0.3);
-      border-color: rgba(239, 68, 68, 0.6);
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
       color: #ffffff;
     }
 
     @media (max-width: 600px) {
       body {
-        padding: 0.25rem;
+        padding: 0.2rem;
       }
       .container {
-        height: 96vh;
-        border-radius: 12px;
+        height: 98vh;
+        border-radius: 8px;
       }
       footer {
-        padding: 0.5rem;
+        padding: 0.4rem;
       }
       button {
-        flex: 1 1 calc(50% - 0.5rem);
-        padding: 0.6rem 0.4rem;
+        flex: 1 1 calc(33.33% - 0.35rem);
+        padding: 0.4rem 0.3rem;
       }
     }
   </style>
@@ -265,7 +268,7 @@
   <div class="container">
     <header>
       <div class="title-area">
-        <h1><span>✦</span> Rascunho Limpo</h1>
+        <h1>✦ Rascunho Limpo</h1>
       </div>
       <div id="statusBadge" class="status-badge">Nenhum ponto fixado</div>
     </header>
@@ -278,7 +281,7 @@
     </div>
 
     <div class="shortcuts-sub-header">
-      <span><kbd>Tab</kbd> Próximo Campo</span>
+      <span><kbd>Tab</kbd> Próx. Campo</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
@@ -294,19 +297,19 @@
           <span>📌</span> Fixar (Ctrl+S)
         </button>
         <button id="btnUndoWord" title="Apagar Palavra (Ctrl + Z)">
-          <span>⌫</span> Apagar Palavra
+          <span>⌫</span> -1 Palavra
         </button>
         <button id="btnRedo" title="Refazer Palavra (Ctrl + Y)">
           <span>↪</span> Refazer
         </button>
         <button id="btnRestoreRascunho" title="Restaurar Rascunho Limpo (Ctrl + R)">
-          <span>🔄</span> Restaurar (Ctrl+R)
+          <span>🔄</span> Restaurar
         </button>
         <button id="btnClear" class="btn-warning" title="Limpar Rascunho (Ctrl + X)">
           <span>🗑</span> Limpar (Ctrl+X)
         </button>
         <button id="btnResetAll" class="btn-danger" title="Zerar tudo incluindo Fixados (Alt + C)">
-          <span>🔥</span> Resetar Tudo (Alt+C)
+          <span>🔥</span> Resetar Tudo
         </button>
       </div>
     </footer>
@@ -351,13 +354,11 @@
       const text = editor.value;
       const currentPos = editor.selectionStart;
 
-      // Procura por ":" ou "?" após a posição atual do cursor
       const regex = /[:\?]\s*/g;
       regex.lastIndex = currentPos;
 
       let match = regex.exec(text);
 
-      // Se não encontrar para frente, busca desde o início do texto
       if (!match) {
         regex.lastIndex = 0;
         match = regex.exec(text);
@@ -375,8 +376,6 @@
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
       statusBadge.classList.add('saved');
-      btnFix.style.transform = "scale(0.95)";
-      setTimeout(() => btnFix.style.transform = "scale(1)", 150);
     }
 
     // Apagar palavra por palavra SEM apagar o texto fixado (Ctrl + Z)

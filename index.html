@@ -19,6 +19,7 @@
       --text-main: #f1f5f9;
       --text-muted: #64748b;
       --border-color: #1e2330;
+      --label-highlight: #93c5fd; /* Destaque meio negrito azul claro */
       --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
@@ -160,30 +161,46 @@
       color: #cbd5e1;
     }
 
-    /* Área do Editor Flexível */
-    textarea {
-      width: 100%;
+    /* Editor Rico de Texto Editável */
+    .editor-wrapper {
       flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #editor {
+      width: 100%;
+      height: 100%;
       background: transparent;
       border: none;
       color: var(--text-main);
       font-family: var(--font-mono);
       font-size: 0.88rem;
       line-height: 1.5;
-      padding: 1rem;
-      resize: none;
       outline: none;
       text-transform: uppercase;
-      transition: background 0.2s ease;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    textarea:focus {
-      background: rgba(255, 255, 255, 0.01);
-    }
-
-    textarea::placeholder {
+    #editor:empty:before {
+      content: attr(data-placeholder);
       color: #2a324b;
       text-transform: none;
+    }
+
+    /* Destaques em meio negrito para as etiquetas */
+    .lbl {
+      font-weight: 600;
+      color: var(--label-highlight);
+    }
+
+    .hdr {
+      font-weight: 600;
+      color: #6366f1;
     }
 
     /* Rodapé Compacto */
@@ -313,7 +330,9 @@
       <span><kbd>Alt</kbd>+<kbd>C</kbd> Resetar Tudo</span>
     </div>
 
-    <textarea id="editor" placeholder="Escreva seu texto base ou selecione um modelo acima..."></textarea>
+    <div class="editor-wrapper">
+      <div id="editor" contenteditable="true" data-placeholder="Escreva seu texto base ou selecione um modelo acima..."></div>
+    </div>
 
     <footer>
       <div class="controls-grid">
@@ -357,29 +376,35 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Textos limpos sem marcações visíveis
-    const templates = {
-      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
-      condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
-      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
+    // Modelos formatados com tags de destaque
+    const rawTemplates = {
+      vr: `<span class="hdr">========== VEÍCULO RESERVA ===========</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CHASSI:</span> \n<span class="lbl">PLACA:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n<span class="lbl">CASO:</span> SOL. VR POR M\n<span class="lbl">END. PAX:</span> \n<span class="lbl">END. CSS:</span> \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      condutor: `<span class="hdr">============== CONDUTOR ==============</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\n<span class="lbl">OBS:</span> `,
+      reboque: `<span class="hdr">============== REBOQUE ===============</span>\n<span class="lbl">NOME:</span> \n<span class="lbl">CHASSI:</span> \n<span class="lbl">PLACA:</span> \n<span class="lbl">CPF:</span> \n<span class="lbl">TEL.:</span> \n<span class="lbl">CASO:</span> SOL. REB POR MOTIVOS \n<span class="lbl">ORIG.:</span> \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
+    function getText() {
+      return editor.innerText || editor.textContent || '';
+    }
+
     function loadTemplate(key) {
-      if (templates[key]) {
-        const textToInsert = templates[key].toUpperCase();
-        if (editor.value.trim() === '') {
-          editor.value = textToInsert;
+      if (rawTemplates[key]) {
+        const textToInsert = rawTemplates[key];
+        const currentContent = editor.innerHTML.trim();
+
+        if (currentContent === '') {
+          editor.innerHTML = textToInsert;
         } else {
-          editor.value += (editor.value.endsWith('\n') ? '' : '\n\n') + textToInsert;
+          editor.innerHTML += '<br><br>' + textToInsert;
         }
         editor.focus();
-        editor.setSelectionRange(0, 0);
         jumpToNextField();
       }
     }
 
-    // Calcula dinamicamente as posições exatas dos pontos de parada do Tab
-    function getTabStops(text) {
+    // Posições inteligentes para navegação via Tab
+    function getTabStops() {
+      const text = getText();
       const stops = [];
       const lines = text.split('\n');
       let accumulated = 0;
@@ -413,11 +438,64 @@
       return stops;
     }
 
-    // Navega exatamente para as posições com suporte a seleção de texto (ex: XX, XH)
+    // Obter posição do cursor em texto puro
+    function getCaretCharacterOffsetWithin(element) {
+      let caretOffset = 0;
+      const doc = element.ownerDocument || element.document;
+      const win = doc.defaultView || doc.parentWindow;
+      const sel = win.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preCaretRange.toString().length;
+      }
+      return caretOffset;
+    }
+
+    // Definir seleção/cursor em texto puro
+    function setCaretPosition(element, start, length = 0) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      
+      let currentLen = 0;
+      let startNode = null, startOffset = 0;
+      let endNode = null, endOffset = 0;
+
+      function traverse(node) {
+        if (node.nodeType === 3) {
+          const len = node.nodeValue.length;
+          if (!startNode && currentLen + len >= start) {
+            startNode = node;
+            startOffset = start - currentLen;
+          }
+          if (!endNode && currentLen + len >= (start + length)) {
+            endNode = node;
+            endOffset = (start + length) - currentLen;
+          }
+          currentLen += len;
+        } else {
+          for (let child of node.childNodes) {
+            traverse(child);
+          }
+        }
+      }
+
+      traverse(element);
+
+      if (startNode) {
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode || startNode, endNode ? endOffset : startOffset);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+
+    // Ir para o próximo campo com Tab
     function jumpToNextField() {
-      const text = editor.value;
-      const currentPos = editor.selectionStart;
-      const stops = getTabStops(text);
+      const currentPos = getCaretCharacterOffsetWithin(editor);
+      const stops = getTabStops();
 
       if (stops.length === 0) return;
 
@@ -427,18 +505,15 @@
         nextStop = stops[0];
       }
 
-      if (nextStop.length > 0) {
-        // Seleciona o texto (como XX ou XH) para sobrescrever direto ao digitar
-        editor.setSelectionRange(nextStop.start, nextStop.start + nextStop.length);
-      } else {
-        editor.setSelectionRange(nextStop.start, nextStop.start);
-      }
+      setCaretPosition(editor, nextStop.start, nextStop.length);
     }
 
-    // Copiar nota para área de transferência (Alt + A)
+    // Copiar nota limpa para a área de transferência (Alt + A)
     function copyToClipboard() {
-      if (!editor.value.trim()) return;
-      navigator.clipboard.writeText(editor.value).then(() => {
+      const textContent = getText();
+      if (!textContent.trim()) return;
+
+      navigator.clipboard.writeText(textContent).then(() => {
         const oldText = statusBadge.textContent;
         const oldSaved = statusBadge.classList.contains('saved');
         
@@ -454,26 +529,21 @@
 
     // Fixar o texto base atual (Ctrl + S)
     function fixCurrentText() {
-      pinnedText = editor.value;
+      pinnedText = editor.innerHTML;
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
       statusBadge.className = "status-badge saved";
     }
 
-    // Apagar palavra por palavra SEM apagar o texto fixado (Ctrl + Z)
+    // Apagar palavra por palavra (Ctrl + Z)
     function deleteLastWord() {
-      const currentText = editor.value;
-      const minLength = pinnedText !== null ? pinnedText.length : 0;
-      
-      if (currentText.length <= minLength) return;
-
-      const editableText = currentText.slice(minLength);
-      const match = editableText.match(/(\s*\S+|\s+)$/);
+      const text = getText();
+      const match = text.match(/(\s*\S+|\s+)$/);
 
       if (match) {
         const removed = match[0];
         wordHistory.push(removed);
-        editor.value = currentText.slice(0, currentText.length - removed.length);
+        editor.innerText = text.slice(0, text.length - removed.length);
       }
     }
 
@@ -481,26 +551,25 @@
     function redoLastWord() {
       if (wordHistory.length > 0) {
         const lastRemoved = wordHistory.pop();
-        editor.value += lastRemoved;
+        editor.innerText += lastRemoved;
       }
     }
 
     // Limpar apenas o Rascunho mantendo o texto fixado (Ctrl + X)
     function clearRascunho() {
-      const minLength = pinnedText !== null ? pinnedText.length : 0;
-      lastClearedDraft = editor.value.slice(minLength);
+      lastClearedDraft = editor.innerHTML;
 
       if (pinnedText !== null) {
-        editor.value = pinnedText;
+        editor.innerHTML = pinnedText;
       } else {
-        editor.value = '';
+        editor.innerHTML = '';
       }
       wordHistory = [];
     }
 
-    // Resetar TUDO (Limpa inclusive os textos fixados e histórico)
+    // Resetar TUDO
     function resetAll() {
-      editor.value = '';
+      editor.innerHTML = '';
       pinnedText = null;
       wordHistory = [];
       lastClearedDraft = null;
@@ -509,22 +578,14 @@
       editor.focus();
     }
 
-    // Restaurar tudo o que foi removido pelo Ctrl + X (Ctrl + R)
+    // Restaurar Rascunho (Ctrl + R)
     function restoreClearedDraft() {
       if (lastClearedDraft !== null) {
-        const base = pinnedText !== null ? pinnedText : '';
-        editor.value = base + lastClearedDraft;
+        editor.innerHTML = lastClearedDraft;
       }
     }
 
-    // Forçar Caixa Alta na digitação
-    editor.addEventListener('input', () => {
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      editor.value = editor.value.toUpperCase();
-      editor.setSelectionRange(start, end);
-    });
-
+    // Eventos e Atalhos
     btnCopy.addEventListener('click', copyToClipboard);
     btnFix.addEventListener('click', fixCurrentText);
     btnUndoWord.addEventListener('click', deleteLastWord);
@@ -533,37 +594,28 @@
     btnClear.addEventListener('click', clearRascunho);
     btnResetAll.addEventListener('click', resetAll);
 
-    // Atalhos do teclado
+    // Atalhos no teclado
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
-      // Navegação por TAB na posição exata
+      // Navegação Tab
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();
       }
 
-      // Alt + A: Copiar Nota
+      // Alt + A: Copiar
       if (e.altKey && key === 'a') {
         e.preventDefault();
         copyToClipboard();
       }
 
-      // Atalhos dos Modelos (Alt + 1, Alt + 2, Alt + 3)
-      if (e.altKey && key === '1') {
-        e.preventDefault();
-        loadTemplate('vr');
-      }
-      if (e.altKey && key === '2') {
-        e.preventDefault();
-        loadTemplate('condutor');
-      }
-      if (e.altKey && key === '3') {
-        e.preventDefault();
-        loadTemplate('reboque');
-      }
+      // Atalhos dos Modelos
+      if (e.altKey && key === '1') { e.preventDefault(); loadTemplate('vr'); }
+      if (e.altKey && key === '2') { e.preventDefault(); loadTemplate('condutor'); }
+      if (e.altKey && key === '3') { e.preventDefault(); loadTemplate('reboque'); }
 
-      // Alt + C ou Ctrl + Shift + X: Resetar TUDO
+      // Resetar Tudo
       if ((e.altKey && key === 'c') || (e.ctrlKey && e.shiftKey && key === 'x')) {
         e.preventDefault();
         resetAll();
@@ -589,10 +641,8 @@
 
       // Ctrl + X: Limpar Rascunho
       if (e.ctrlKey && !e.shiftKey && key === 'x') {
-        if (editor.selectionStart === editor.selectionEnd) {
-          e.preventDefault();
-          clearRascunho();
-        }
+        e.preventDefault();
+        clearRascunho();
       }
 
       // Ctrl + R: Restaurar Rascunho

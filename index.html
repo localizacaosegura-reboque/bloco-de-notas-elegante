@@ -225,7 +225,6 @@
       z-index: 100;
       flex-direction: column;
       overflow: hidden;
-      transition: all 0.3s ease;
     }
 
     .script-modal.active {
@@ -445,10 +444,10 @@
 
     <!-- Modelos Rápidos e Botão de Balão de Scripts -->
     <div class="templates-bar">
-      <button class="btn-template" id="btnVr">🚗 Veículo Reserva (Alt+1)</button>
-      <button class="btn-template" id="btnCondutor">👤 Condutor (Alt+2)</button>
-      <button class="btn-template" id="btnReboque">🛞 Reboque (Alt+3)</button>
-      <button class="btn-script-trigger" id="btnToggleScript">💬 Argumentos / FAQ (Alt+F)</button>
+      <button class="btn-template" id="btnVr">🚗 Veículo Reserva (Alt+1 / Ctrl+Shift+1)</button>
+      <button class="btn-template" id="btnCondutor">👤 Condutor (Alt+2 / Ctrl+Shift+2)</button>
+      <button class="btn-template" id="btnReboque">🛞 Reboque (Alt+3 / Ctrl+Shift+3)</button>
+      <button class="btn-script-trigger" id="btnToggleScript">💬 Argumentos / FAQ (Alt+F / Ctrl+Shift+F)</button>
     </div>
 
     <div class="shortcuts-sub-header">
@@ -472,7 +471,7 @@
         <button class="close-modal" id="btnCloseModal">✕</button>
       </div>
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Pesquisar (ex: RAM, Venda Direta, Caução, Guincho)..." onkeyup="filterScripts()">
+        <input type="text" id="searchInput" placeholder="Pesquisar (ex: RAM, Venda Direta, Caução, Guincho)...">
       </div>
       <div class="script-content" id="scriptContent">
         <!-- Cards gerados dinamicamente via JS -->
@@ -525,6 +524,7 @@
     const scriptModal = document.getElementById('scriptModal');
     const btnCloseModal = document.getElementById('btnCloseModal');
     const scriptContent = document.getElementById('scriptContent');
+    const searchInput = document.getElementById('searchInput');
 
     let pinnedText = null;
     let wordHistory = [];
@@ -588,9 +588,14 @@
     ];
 
     function toggleModal() {
-      scriptModal.classList.toggle('active');
-      if (scriptModal.classList.contains('active')) {
-        document.getElementById('searchInput').focus();
+      if (scriptModal.style.display === 'flex' || scriptModal.classList.contains('active')) {
+        scriptModal.style.display = 'none';
+        scriptModal.classList.remove('active');
+        editor.focus();
+      } else {
+        scriptModal.style.display = 'flex';
+        scriptModal.classList.add('active');
+        setTimeout(() => searchInput.focus(), 100);
       }
     }
 
@@ -602,19 +607,29 @@
         card.innerHTML = `
           <div class="script-title">${item.title}</div>
           <div class="script-text">${item.text}</div>
-          <button class="btn-insert" onclick="insertScript(${index})">+ Inserir no Bloco</button>
+          <button class="btn-insert" data-index="${index}">+ Inserir no Bloco</button>
         `;
         scriptContent.appendChild(card);
+      });
+
+      // Evento de inserção dos cards
+      document.querySelectorAll('.btn-insert').forEach(btn => {
+        btn.onclick = (e) => {
+          const idx = e.target.getAttribute('data-index');
+          insertScript(idx);
+        };
       });
     }
 
     function filterScripts() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
+      const query = searchInput.value.toLowerCase();
       const filtered = scriptDatabase.filter(item => 
         item.title.toLowerCase().includes(query) || item.text.toLowerCase().includes(query)
       );
       renderScripts(filtered);
     }
+
+    searchInput.addEventListener('input', filterScripts);
 
     function insertScript(index) {
       const item = scriptDatabase[index];
@@ -625,26 +640,4 @@
         
         editor.value = text.slice(0, currentPos) + insertText + text.slice(currentPos);
         editor.focus();
-        editor.setSelectionRange(currentPos + insertText.length, currentPos + insertText.length);
-      }
-    }
-
-    function loadTemplate(key) {
-      if (rawTemplates[key]) {
-        const textToInsert = rawTemplates[key];
-        const currentContent = editor.value.trim();
-
-        if (currentContent === '') {
-          editor.value = textToInsert;
-        } else {
-          editor.value += '\n\n' + textToInsert;
-        }
-        editor.focus();
-        jumpToNextField();
-      }
-    }
-
-    function getTabStops() {
-      const text = editor.value;
-      const stops = [];
-      const lines =
+        editor.setSelectionRange(currentPos + insertText.lengt

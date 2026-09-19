@@ -88,6 +88,12 @@
       border-color: rgba(99, 102, 241, 0.25);
     }
 
+    .status-badge.copied {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
     /* Barra de Modelos Minimalista */
     .templates-bar {
       display: flex;
@@ -168,6 +174,11 @@
       resize: none;
       outline: none;
       text-transform: uppercase;
+      transition: background 0.2s ease;
+    }
+
+    textarea:focus {
+      background: rgba(255, 255, 255, 0.01);
     }
 
     textarea::placeholder {
@@ -205,8 +216,8 @@
       align-items: center;
       justify-content: center;
       gap: 0.25rem;
-      flex: 1 1 calc(16.66% - 0.35rem);
-      min-width: 90px;
+      flex: 1 1 calc(14.28% - 0.35rem);
+      min-width: 85px;
       white-space: nowrap;
     }
 
@@ -224,6 +235,18 @@
 
     button.btn-primary:hover {
       background: var(--accent-color);
+      color: #ffffff;
+    }
+
+    button.btn-copy {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+
+    button.btn-copy:hover {
+      background: #10b981;
+      border-color: #10b981;
       color: #ffffff;
     }
 
@@ -282,6 +305,7 @@
 
     <div class="shortcuts-sub-header">
       <span><kbd>Tab</kbd> Próx. Campo</span>
+      <span><kbd>Alt</kbd>+<kbd>A</kbd> Copiar</span>
       <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Fixar</span>
       <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> -1 Palavra</span>
       <span><kbd>Ctrl</kbd>+<kbd>Y</kbd> Refazer</span>
@@ -293,6 +317,9 @@
 
     <footer>
       <div class="controls-grid">
+        <button id="btnCopy" class="btn-copy" title="Copiar Nota Completa (Alt + A)">
+          <span>📋</span> Copiar (Alt+A)
+        </button>
         <button id="btnFix" class="btn-primary" title="Fixar Texto (Ctrl + S)">
           <span>📌</span> Fixar (Ctrl+S)
         </button>
@@ -318,6 +345,7 @@
   <script>
     const editor = document.getElementById('editor');
     const statusBadge = document.getElementById('statusBadge');
+    const btnCopy = document.getElementById('btnCopy');
     const btnFix = document.getElementById('btnFix');
     const btnUndoWord = document.getElementById('btnUndoWord');
     const btnRedo = document.getElementById('btnRedo');
@@ -357,7 +385,6 @@
       let accumulated = 0;
 
       for (let line of lines) {
-        // Ignorar linhas informativas sem campos de preenchimento
         const isIgnored = line.includes('==========') || 
                           line.includes('ASSIST VR SOL') || 
                           line.includes('CIENTE DA PRÉVIA') || 
@@ -368,27 +395,25 @@
                           line.includes('CIENTE PRAZO INIC.');
 
         if (!isIgnored) {
-          // Caso especial da linha de agendamento: CIENTE AGEND. PARA [parada]XX ÀS [parada]XH
           if (line.includes('CIENTE AGEND. PARA')) {
             const indexXX = line.indexOf('XX');
             const indexXH = line.indexOf('XH');
 
-            if (indexXX !== -1) stops.push(accumulated + indexXX);
-            if (indexXH !== -1) stops.push(accumulated + indexXH);
+            if (indexXX !== -1) stops.push({ start: accumulated + indexXX, length: 2 });
+            if (indexXH !== -1) stops.push({ start: accumulated + indexXH, length: 2 });
           } 
-          // Campos normais terminados em : ou linhas de texto preenchidas
           else if (line.includes(':')) {
-            stops.push(accumulated + line.length);
+            stops.push({ start: accumulated + line.length, length: 0 });
           }
         }
 
-        accumulated += line.length + 1; // +1 para considerar o \n
+        accumulated += line.length + 1;
       }
 
       return stops;
     }
 
-    // Navega exatamente para as posições do desenho
+    // Navega exatamente para as posições com suporte a seleção de texto (ex: XX, XH)
     function jumpToNextField() {
       const text = editor.value;
       const currentPos = editor.selectionStart;
@@ -396,15 +421,35 @@
 
       if (stops.length === 0) return;
 
-      // Encontra o próximo ponto de parada à frente do cursor
-      let nextStop = stops.find(pos => pos > currentPos);
+      let nextStop = stops.find(stop => stop.start > currentPos);
 
-      // Se passou de todos os pontos, volta para o primeiro
-      if (nextStop === undefined) {
+      if (!nextStop) {
         nextStop = stops[0];
       }
 
-      editor.setSelectionRange(nextStop, nextStop);
+      if (nextStop.length > 0) {
+        // Seleciona o texto (como XX ou XH) para sobrescrever direto ao digitar
+        editor.setSelectionRange(nextStop.start, nextStop.start + nextStop.length);
+      } else {
+        editor.setSelectionRange(nextStop.start, nextStop.start);
+      }
+    }
+
+    // Copiar nota para área de transferência (Alt + A)
+    function copyToClipboard() {
+      if (!editor.value.trim()) return;
+      navigator.clipboard.writeText(editor.value).then(() => {
+        const oldText = statusBadge.textContent;
+        const oldSaved = statusBadge.classList.contains('saved');
+        
+        statusBadge.textContent = "Copiado! ✓";
+        statusBadge.className = "status-badge copied";
+
+        setTimeout(() => {
+          statusBadge.className = "status-badge" + (oldSaved ? " saved" : "");
+          statusBadge.textContent = oldText;
+        }, 1800);
+      });
     }
 
     // Fixar o texto base atual (Ctrl + S)
@@ -412,7 +457,7 @@
       pinnedText = editor.value;
       wordHistory = [];
       statusBadge.textContent = "Ponto Fixado ✓";
-      statusBadge.classList.add('saved');
+      statusBadge.className = "status-badge saved";
     }
 
     // Apagar palavra por palavra SEM apagar o texto fixado (Ctrl + Z)
@@ -460,7 +505,7 @@
       wordHistory = [];
       lastClearedDraft = null;
       statusBadge.textContent = "Nenhum ponto fixado";
-      statusBadge.classList.remove('saved');
+      statusBadge.className = "status-badge";
       editor.focus();
     }
 
@@ -480,6 +525,7 @@
       editor.setSelectionRange(start, end);
     });
 
+    btnCopy.addEventListener('click', copyToClipboard);
     btnFix.addEventListener('click', fixCurrentText);
     btnUndoWord.addEventListener('click', deleteLastWord);
     btnRedo.addEventListener('click', redoLastWord);
@@ -495,6 +541,12 @@
       if (e.key === 'Tab') {
         e.preventDefault();
         jumpToNextField();
+      }
+
+      // Alt + A: Copiar Nota
+      if (e.altKey && key === 'a') {
+        e.preventDefault();
+        copyToClipboard();
       }
 
       // Atalhos dos Modelos (Alt + 1, Alt + 2, Alt + 3)

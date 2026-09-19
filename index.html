@@ -229,7 +229,7 @@
     }
 
     .script-modal.active {
-      display: flex;
+      display: flex !important;
     }
 
     .script-header {
@@ -530,7 +530,6 @@
     let wordHistory = [];
     let lastClearedDraft = null;
 
-    // Lista de Rótulos e Frases Fixas
     const protectedPrefixes = [
       "========== VEÍCULO RESERVA ==========",
       "============== CONDUTOR ==============",
@@ -544,12 +543,11 @@
     ];
 
     const rawTemplates = {
-      vr: `========== VEÍCULO RESERVA ==========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
+      vr: `========== VEÍCULO RESERVA ===========\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. VR POR M\nEND. PAX: \nEND. CSS: \nASSIST VR SOL.\nCIENTE DA PRÉVIA INICIAL DE H ÚTEIS PARA ANÁLISE DO SETOR RESP.`,
       condutor: `============== CONDUTOR ==============\nNOME: \nCPF: \nTEL.: \n>21 ANOS? SIM\nHAB. > 2 ANOS? SIM\nCC COM LIM. >= R$ 1K? SIM\nOBS: `,
-      reboque: `============== REBOQUE ==============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
+      reboque: `============== REBOQUE ===============\nNOME: \nCHASSI: \nPLACA: \nCPF: \nTEL.: \nCASO: SOL. REB POR MOTIVOS \nORIG.: \nVIA PÚB? N. SUBSOLO? N. RODAS/CÂMBIO/DIR. TRAVADOS? N.\nCIENTE PRAZO INIC. 75 MIN.\nCIENTE AGEND. PARA XX ÀS XH`
     };
 
-    // Base de Conhecimento / Argumentos cadastrados
     const scriptDatabase = [
       {
         title: "Abordagem Inicial / Confiat",
@@ -589,7 +587,13 @@
       }
     ];
 
-    // Renderizar Cards de Argumentos no Balão
+    function toggleModal() {
+      scriptModal.classList.toggle('active');
+      if (scriptModal.classList.contains('active')) {
+        document.getElementById('searchInput').focus();
+      }
+    }
+
     function renderScripts(data) {
       scriptContent.innerHTML = '';
       data.forEach((item, index) => {
@@ -604,7 +608,6 @@
       });
     }
 
-    // Filtrar Argumentos na Busca
     function filterScripts() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       const filtered = scriptDatabase.filter(item => 
@@ -613,7 +616,6 @@
       renderScripts(filtered);
     }
 
-    // Inserir o texto selecionado diretamente no Bloco de Notas
     function insertScript(index) {
       const item = scriptDatabase[index];
       if (item) {
@@ -644,4 +646,5 @@
 
     function getTabStops() {
       const text = editor.value;
-      const stops
+      const stops = [];
+      const lines =
